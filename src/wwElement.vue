@@ -254,103 +254,6 @@
 <script>
 import { ref, computed, watch } from 'vue';
 
-// Field Definitions
-const FIELD_DEFINITIONS = {
-  // v1 - Comportamento Básico
-  frequency: { type: 'numeric', label: 'Número de pedidos', temporal: true },
-  total_value: { type: 'numeric', label: 'Valor Total Gasto', temporal: true },
-  recencia: { type: 'numeric', label: 'Dias Desde Última Compra', temporal: true },
-
-  // v2 - Demografia
-  age: { type: 'numeric', label: 'Idade', temporal: false },
-  birthday_period: { type: 'text', label: 'Período de Aniversário', temporal: false },
-  gender: { type: 'text', label: 'Gênero', temporal: false },
-  location_city: { type: 'text', label: 'Cidade', temporal: false },
-  location_state: { type: 'text', label: 'Estado', temporal: false },
-  opt_in_sms: { type: 'boolean', label: 'Opt-in SMS', temporal: false },
-  opt_in_email: { type: 'boolean', label: 'Opt-in Email', temporal: false },
-  opt_in_whatsapp: { type: 'boolean', label: 'Opt-in WhatsApp', temporal: false },
-
-  // v2 - Cashback
-  cashback_last_status: { type: 'text', label: 'Status do Último Cashback', temporal: false },
-  cashback_last_value: { type: 'numeric', label: 'Valor do Último Cashback', temporal: false },
-  cashback_expiry_date: { type: 'date', label: 'Data de Vencimento do Cashback', temporal: false },
-  cashback_creation_date: { type: 'date', label: 'Data de Criação do Cashback', temporal: false },
-
-  // v2 - RFM
-  rfm_segment: { type: 'text', label: 'Segmento RFM', temporal: false },
-
-  // v3 - Produtos
-  product_id: { type: 'uuid', label: 'Produto Específico', temporal: true },
-  product_name: { type: 'text', label: 'Nome do Produto', temporal: true },
-  product_sku: { type: 'text', label: 'SKU do Produto', temporal: true },
-  product_brand: { type: 'text', label: 'Marca', temporal: true },
-  product_category_id: { type: 'uuid', label: 'Categoria (com hierarquia)', temporal: true },
-  product_category_name: { type: 'text', label: 'Nome da Categoria', temporal: true },
-  variation_color: { type: 'text', label: 'Cor', temporal: true },
-  variation_size: { type: 'text', label: 'Tamanho', temporal: true },
-  variation_material: { type: 'text', label: 'Material', temporal: true },
-  product_purchase_count: { type: 'numeric', label: 'Quantidade de Compras', temporal: true },
-  product_purchase_value: { type: 'numeric', label: 'Valor Total Gasto em Produtos', temporal: true },
-  product_purchase_recency: { type: 'numeric', label: 'Dias Desde Última Compra de Produto', temporal: false },
-};
-
-const FIELD_CATEGORIES = [
-  {
-    label: '📊 Comportamento',
-    fields: [
-      { value: 'frequency', label: 'Número de pedidos' },
-      { value: 'total_value', label: 'Valor Total Gasto' },
-      { value: 'recencia', label: 'Dias Desde Última Compra' },
-    ],
-  },
-  {
-    label: '👤 Demografia',
-    fields: [
-      { value: 'age', label: 'Idade' },
-      { value: 'birthday_period', label: 'Período de Aniversário' },
-      { value: 'gender', label: 'Gênero' },
-      { value: 'location_city', label: 'Cidade' },
-      { value: 'location_state', label: 'Estado' },
-      { value: 'opt_in_sms', label: 'Opt-in SMS' },
-      { value: 'opt_in_email', label: 'Opt-in Email' },
-      { value: 'opt_in_whatsapp', label: 'Opt-in WhatsApp' },
-    ],
-  },
-  {
-    label: '💰 Cashback',
-    fields: [
-      { value: 'cashback_last_status', label: 'Status do Último Cashback' },
-      { value: 'cashback_last_value', label: 'Valor do Último Cashback' },
-      { value: 'cashback_expiry_date', label: 'Data de Vencimento do Cashback' },
-      { value: 'cashback_creation_date', label: 'Data de Criação do Cashback' },
-    ],
-  },
-  {
-    label: '📈 RFM',
-    fields: [
-      { value: 'rfm_segment', label: 'Segmento RFM' },
-    ],
-  },
-  {
-    label: '🛍️ Produtos',
-    fields: [
-      { value: 'product_id', label: 'Produto Específico' },
-      { value: 'product_name', label: 'Nome do Produto' },
-      { value: 'product_sku', label: 'SKU do Produto' },
-      { value: 'product_brand', label: 'Marca' },
-      { value: 'product_category_id', label: 'Categoria (com hierarquia)' },
-      { value: 'product_category_name', label: 'Nome da Categoria' },
-      { value: 'variation_color', label: 'Cor' },
-      { value: 'variation_size', label: 'Tamanho' },
-      { value: 'variation_material', label: 'Material' },
-      { value: 'product_purchase_count', label: 'Quantidade de Compras' },
-      { value: 'product_purchase_value', label: 'Valor Total Gasto em Produtos' },
-      { value: 'product_purchase_recency', label: 'Dias Desde Última Compra de Produto' },
-    ],
-  },
-];
-
 export default {
   props: {
     uid: { type: String, required: true },
@@ -361,27 +264,104 @@ export default {
   },
   emits: ['trigger-event'],
   setup(props, { emit }) {
-    const segmentName = ref('');
-    const segmentDescription = ref('');
-    const groups = ref([createNewGroup(1)]);
+    // Field Definitions
+    const FIELD_DEFINITIONS = {
+      // v1 - Comportamento Básico
+      frequency: { type: 'numeric', label: 'Número de pedidos', temporal: true },
+      total_value: { type: 'numeric', label: 'Valor Total Gasto', temporal: true },
+      recencia: { type: 'numeric', label: 'Dias Desde Última Compra', temporal: true },
 
-    const fieldCategories = FIELD_CATEGORIES;
+      // v2 - Demografia
+      age: { type: 'numeric', label: 'Idade', temporal: false },
+      birthday_period: { type: 'text', label: 'Período de Aniversário', temporal: false },
+      gender: { type: 'text', label: 'Gênero', temporal: false },
+      location_city: { type: 'text', label: 'Cidade', temporal: false },
+      location_state: { type: 'text', label: 'Estado', temporal: false },
+      opt_in_sms: { type: 'boolean', label: 'Opt-in SMS', temporal: false },
+      opt_in_email: { type: 'boolean', label: 'Opt-in Email', temporal: false },
+      opt_in_whatsapp: { type: 'boolean', label: 'Opt-in WhatsApp', temporal: false },
 
-    const { value: segmentData, setValue: setSegmentData } = wwLib.wwVariable.useComponentVariable({
-      uid: props.uid,
-      name: 'segmentData',
-      type: 'object',
-      defaultValue: {},
-    });
+      // v2 - Cashback
+      cashback_last_status: { type: 'text', label: 'Status do Último Cashback', temporal: false },
+      cashback_last_value: { type: 'numeric', label: 'Valor do Último Cashback', temporal: false },
+      cashback_expiry_date: { type: 'date', label: 'Data de Vencimento do Cashback', temporal: false },
+      cashback_creation_date: { type: 'date', label: 'Data de Criação do Cashback', temporal: false },
 
-    const canSave = computed(() => {
-      return (
-        segmentName.value.trim().length > 0 &&
-        groups.value.length > 0 &&
-        groups.value.every(g => g.conditions.length > 0 && g.conditions.every(c => c.field && c.operator))
-      );
-    });
+      // v2 - RFM
+      rfm_segment: { type: 'text', label: 'Segmento RFM', temporal: false },
 
+      // v3 - Produtos
+      product_id: { type: 'uuid', label: 'Produto Específico', temporal: true },
+      product_name: { type: 'text', label: 'Nome do Produto', temporal: true },
+      product_sku: { type: 'text', label: 'SKU do Produto', temporal: true },
+      product_brand: { type: 'text', label: 'Marca', temporal: true },
+      product_category_id: { type: 'uuid', label: 'Categoria (com hierarquia)', temporal: true },
+      product_category_name: { type: 'text', label: 'Nome da Categoria', temporal: true },
+      variation_color: { type: 'text', label: 'Cor', temporal: true },
+      variation_size: { type: 'text', label: 'Tamanho', temporal: true },
+      variation_material: { type: 'text', label: 'Material', temporal: true },
+      product_purchase_count: { type: 'numeric', label: 'Quantidade de Compras', temporal: true },
+      product_purchase_value: { type: 'numeric', label: 'Valor Total Gasto em Produtos', temporal: true },
+      product_purchase_recency: { type: 'numeric', label: 'Dias Desde Última Compra de Produto', temporal: false },
+    };
+
+    const fieldCategories = [
+      {
+        label: '📊 Comportamento',
+        fields: [
+          { value: 'frequency', label: 'Número de pedidos' },
+          { value: 'total_value', label: 'Valor Total Gasto' },
+          { value: 'recencia', label: 'Dias Desde Última Compra' },
+        ],
+      },
+      {
+        label: '👤 Demografia',
+        fields: [
+          { value: 'age', label: 'Idade' },
+          { value: 'birthday_period', label: 'Período de Aniversário' },
+          { value: 'gender', label: 'Gênero' },
+          { value: 'location_city', label: 'Cidade' },
+          { value: 'location_state', label: 'Estado' },
+          { value: 'opt_in_sms', label: 'Opt-in SMS' },
+          { value: 'opt_in_email', label: 'Opt-in Email' },
+          { value: 'opt_in_whatsapp', label: 'Opt-in WhatsApp' },
+        ],
+      },
+      {
+        label: '💰 Cashback',
+        fields: [
+          { value: 'cashback_last_status', label: 'Status do Último Cashback' },
+          { value: 'cashback_last_value', label: 'Valor do Último Cashback' },
+          { value: 'cashback_expiry_date', label: 'Data de Vencimento do Cashback' },
+          { value: 'cashback_creation_date', label: 'Data de Criação do Cashback' },
+        ],
+      },
+      {
+        label: '📈 RFM',
+        fields: [
+          { value: 'rfm_segment', label: 'Segmento RFM' },
+        ],
+      },
+      {
+        label: '🛍️ Produtos',
+        fields: [
+          { value: 'product_id', label: 'Produto Específico' },
+          { value: 'product_name', label: 'Nome do Produto' },
+          { value: 'product_sku', label: 'SKU do Produto' },
+          { value: 'product_brand', label: 'Marca' },
+          { value: 'product_category_id', label: 'Categoria (com hierarquia)' },
+          { value: 'product_category_name', label: 'Nome da Categoria' },
+          { value: 'variation_color', label: 'Cor' },
+          { value: 'variation_size', label: 'Tamanho' },
+          { value: 'variation_material', label: 'Material' },
+          { value: 'product_purchase_count', label: 'Quantidade de Compras' },
+          { value: 'product_purchase_value', label: 'Valor Total Gasto em Produtos' },
+          { value: 'product_purchase_recency', label: 'Dias Desde Última Compra de Produto' },
+        ],
+      },
+    ];
+
+    // Helper functions (defined first to avoid hoisting issues)
     function createNewCondition() {
       return {
         field: '',
@@ -404,6 +384,26 @@ export default {
         conditions: [createNewCondition()],
       };
     }
+
+    // Reactive state
+    const segmentName = ref('');
+    const segmentDescription = ref('');
+    const groups = ref([createNewGroup(1)]);
+
+    const { value: segmentData, setValue: setSegmentData } = wwLib.wwVariable.useComponentVariable({
+      uid: props.uid,
+      name: 'segmentData',
+      type: 'object',
+      defaultValue: {},
+    });
+
+    const canSave = computed(() => {
+      return (
+        segmentName.value.trim().length > 0 &&
+        groups.value.length > 0 &&
+        groups.value.every(g => g.conditions.length > 0 && g.conditions.every(c => c.field && c.operator))
+      );
+    });
 
     function getFieldType(fieldName) {
       const field = FIELD_DEFINITIONS[fieldName];
