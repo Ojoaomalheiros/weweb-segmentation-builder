@@ -2,15 +2,15 @@
   <div class="segmentation-page">
     <!-- Top Header -->
     <div class="page-header">
-      <h1 class="page-title">{{ content?.title || 'Criar Segmento' }}</h1>
+      <h1 class="page-title">Criar Segmento</h1>
       <div class="header-actions">
-        <button @click="handleCancel" class="btn-cancel" type="button">
+        <button @click="handleCancel" class="btn-secondary" type="button">
           Cancelar
         </button>
         <button
           @click="handleSave"
           :disabled="!canSave"
-          class="btn-save"
+          class="btn-primary"
           type="button"
         >
           Salvar segmento
@@ -21,60 +21,55 @@
     <!-- Content Area -->
     <div class="page-content">
       <!-- Section Header -->
-      <div class="section-header">
+      <div class="section-card">
         <h2 class="section-title">Construtor de segmento</h2>
         <p class="section-description">
           Os segmentos permitem rastrear e analisar clientes que atendem a certos critérios
         </p>
-      </div>
 
-      <!-- Name and Description Row -->
-      <div class="info-row">
-        <div class="form-field">
-          <label class="field-label">Nome *</label>
-          <input
-            v-model="segmentName"
-            type="text"
-            class="field-input"
-            placeholder="Digite o nome do segmento"
-            @input="handleSegmentNameChange"
-          />
+        <!-- Name and Description Row -->
+        <div class="fields-row">
+          <div class="field-group">
+            <label class="field-label">Nome *</label>
+            <input
+              v-model="segmentName"
+              type="text"
+              class="field-input"
+              placeholder="Digite o nome do segmento"
+              @input="handleSegmentNameChange"
+            />
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Descrição</label>
+            <input
+              v-model="segmentDescription"
+              type="text"
+              class="field-input"
+              placeholder="Digite a descrição do segmento"
+              @input="handleSegmentDescriptionChange"
+            />
+          </div>
         </div>
 
-        <div class="form-field">
-          <label class="field-label">Descrição</label>
-          <input
-            v-model="segmentDescription"
-            type="text"
-            class="field-input"
-            placeholder="Digite a descrição do segmento"
-            @input="handleSegmentDescriptionChange"
-          />
-        </div>
-      </div>
-
-      <!-- Segment Builder Header -->
-      <div class="builder-header">
+        <!-- Builder Title -->
         <h3 class="builder-title">Criar um segmento para clientes que:</h3>
-      </div>
 
-      <!-- Groups and Conditions -->
-      <div class="builder-container">
-        <template v-for="(group, groupIndex) in groups" :key="group.groupNumber">
-          <!-- Group Container -->
-          <div class="group-wrapper">
+        <!-- Groups and Conditions -->
+        <div class="conditions-area">
+          <template v-for="(group, groupIndex) in groups" :key="group.groupNumber">
             <!-- Conditions in this group -->
             <div
               v-for="(condition, condIndex) in group.conditions"
               :key="`${group.groupNumber}-${condIndex}`"
-              class="condition-wrapper"
+              class="condition-item"
             >
-              <div class="condition-row">
+              <div class="condition-content">
                 <!-- Field Selector -->
                 <select
                   v-model="condition.field"
                   @change="handleFieldChange(groupIndex, condIndex)"
-                  class="condition-select"
+                  class="select-field"
                 >
                   <option value="">Selecione o Critério</option>
                   <optgroup
@@ -97,7 +92,7 @@
                   v-if="condition.field"
                   v-model="condition.operator"
                   @change="handleOperatorChange(groupIndex, condIndex)"
-                  class="condition-select"
+                  class="select-field"
                 >
                   <option value="">Selecione</option>
                   <option
@@ -109,30 +104,30 @@
                   </option>
                 </select>
 
-                <!-- Value Input (dynamic based on type) -->
+                <!-- Value Inputs -->
                 <template v-if="condition.operator">
                   <!-- Numeric between -->
                   <template v-if="getFieldType(condition.field) === 'numeric' && condition.operator === 'between'">
                     <input
                       v-model.number="condition.valueMin"
                       type="number"
-                      class="condition-input-small"
+                      class="input-small"
                       placeholder="Mín"
                     />
                     <input
                       v-model.number="condition.valueMax"
                       type="number"
-                      class="condition-input-small"
+                      class="input-small"
                       placeholder="Máx"
                     />
                   </template>
 
-                  <!-- Numeric single value -->
+                  <!-- Numeric single -->
                   <input
                     v-else-if="getFieldType(condition.field) === 'numeric'"
                     v-model.number="condition.valueMin"
                     type="number"
-                    class="condition-input-small"
+                    class="input-small"
                     placeholder="30"
                   />
 
@@ -141,15 +136,15 @@
                     v-else-if="getFieldType(condition.field) === 'text'"
                     v-model="condition.valueText"
                     type="text"
-                    class="condition-input"
-                    placeholder="Digite o texto"
+                    class="input-field"
+                    placeholder="Digite"
                   />
 
                   <!-- Boolean -->
                   <select
                     v-else-if="getFieldType(condition.field) === 'boolean'"
                     v-model.number="condition.valueMin"
-                    class="condition-select"
+                    class="select-field"
                   >
                     <option :value="1">Sim</option>
                     <option :value="0">Não</option>
@@ -160,7 +155,7 @@
                     v-else-if="getFieldType(condition.field) === 'uuid'"
                     v-model="condition.valueUuid"
                     type="text"
-                    class="condition-input"
+                    class="input-field"
                     placeholder="ID"
                   />
 
@@ -169,7 +164,7 @@
                     v-else-if="getFieldType(condition.field) === 'date'"
                     v-model.number="condition.days"
                     type="number"
-                    class="condition-input-small"
+                    class="input-small"
                     placeholder="Dias"
                   />
                 </template>
@@ -178,22 +173,22 @@
                 <select
                   v-if="condition.field && supportsTemporalFilter(condition.field)"
                   v-model="condition.timeOperator"
-                  class="condition-select"
+                  class="select-field"
                 >
                   <option value="over_all_time">desde sempre</option>
                   <option value="in_the_last">nos últimos X dias</option>
                   <option value="between_dates">entre datas</option>
                 </select>
 
-                <!-- Days input for temporal -->
+                <!-- Days for temporal -->
                 <template v-if="condition.timeOperator === 'in_the_last'">
                   <input
                     v-model.number="condition.days"
                     type="number"
-                    class="condition-input-small"
+                    class="input-small"
                     placeholder="30"
                   />
-                  <span class="condition-label">dias</span>
+                  <span class="text-label">dias</span>
                 </template>
 
                 <!-- Date range for temporal -->
@@ -201,54 +196,56 @@
                   <input
                     v-model="condition.startDate"
                     type="date"
-                    class="condition-input-small"
+                    class="input-small"
                   />
                   <input
                     v-model="condition.endDate"
                     type="date"
-                    class="condition-input-small"
+                    class="input-small"
                   />
                 </template>
 
-                <!-- Delete button -->
+                <!-- Delete Button -->
                 <button
                   @click="removeCondition(groupIndex, condIndex)"
                   class="btn-delete"
                   type="button"
                   title="Remover"
                 >
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path d="M4 4L12 12M4 12L12 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M2 4H14M12.6667 4V13.3333C12.6667 14 12 14.6667 11.3333 14.6667H4.66667C4 14.6667 3.33333 14 3.33333 13.3333V4M5.33333 4V2.66667C5.33333 2 6 1.33333 6.66667 1.33333H9.33333C10 1.33333 10.6667 2 10.6667 2.66667V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M6.66667 7.33334V11.3333" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M9.33333 7.33334V11.3333" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                   </svg>
                 </button>
               </div>
 
-              <!-- OU divider (except for last condition in group) -->
-              <div v-if="condIndex < group.conditions.length - 1" class="or-divider">
+              <!-- OU divider -->
+              <div v-if="condIndex < group.conditions.length - 1" class="divider-ou">
                 OU
               </div>
             </div>
 
-            <!-- Add OR button -->
+            <!-- Add OU button -->
             <button
               @click="addCondition(groupIndex)"
-              class="btn-add-or"
+              class="btn-add-condition"
               type="button"
             >
-              + OU
+              <span class="plus-icon">+</span> OU
             </button>
-          </div>
 
-          <!-- E divider (except for last group) -->
-          <div v-if="groupIndex < groups.length - 1" class="and-divider">
-            E
-          </div>
-        </template>
+            <!-- E divider -->
+            <div v-if="groupIndex < groups.length - 1" class="divider-e">
+              E
+            </div>
+          </template>
 
-        <!-- Add AND button -->
-        <button @click="addGroup" class="btn-add-and" type="button">
-          + E
-        </button>
+          <!-- Add E button -->
+          <button @click="addGroup" class="btn-add-group" type="button">
+            <span class="plus-icon">+</span> E
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -469,7 +466,6 @@ export default {
     function removeCondition(groupIndex, conditionIndex) {
       const group = groups.value[groupIndex];
       if (group.conditions.length <= 1) {
-        // Remove the entire group if it's the last condition
         removeGroup(groupIndex);
       } else {
         group.conditions.splice(conditionIndex, 1);
@@ -590,26 +586,30 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+* {
+  box-sizing: border-box;
+}
+
 .segmentation-page {
   min-height: 100vh;
-  background-color: #f9fafb;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: #fafafa;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 .page-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 32px;
+  padding: 16px 24px;
   background-color: #ffffff;
   border-bottom: 1px solid #e5e7eb;
 }
 
 .page-title {
   margin: 0;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 600;
-  color: #111827;
+  color: #000000;
 }
 
 .header-actions {
@@ -617,35 +617,36 @@ export default {
   gap: 12px;
 }
 
-.btn-cancel {
-  padding: 8px 16px;
+.btn-secondary {
+  padding: 8px 20px;
   background: #ffffff;
-  color: #374151;
+  color: #000000;
   border: 1px solid #d1d5db;
   border-radius: 6px;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.15s;
 
   &:hover {
     background: #f9fafb;
+    border-color: #9ca3af;
   }
 }
 
-.btn-save {
-  padding: 8px 16px;
-  background: #6366f1;
+.btn-primary {
+  padding: 8px 20px;
+  background: #5b21b6;
   color: #ffffff;
   border: none;
   border-radius: 6px;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.15s;
 
   &:hover:not(:disabled) {
-    background: #4f46e5;
+    background: #4c1d95;
   }
 
   &:disabled {
@@ -655,55 +656,58 @@ export default {
 }
 
 .page-content {
-  max-width: 1400px;
+  padding: 24px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 32px;
 }
 
-.section-header {
-  margin-bottom: 32px;
+.section-card {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .section-title {
   margin: 0 0 8px 0;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
-  color: #111827;
+  color: #000000;
 }
 
 .section-description {
-  margin: 0;
-  font-size: 14px;
+  margin: 0 0 24px 0;
+  font-size: 13px;
   color: #6b7280;
+  line-height: 1.5;
 }
 
-.info-row {
+.fields-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  gap: 16px;
   margin-bottom: 32px;
 }
 
-.form-field {
+.field-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .field-label {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   color: #374151;
 }
 
 .field-input {
-  padding: 10px 12px;
+  padding: 8px 12px;
   border: 1px solid #d1d5db;
   border-radius: 6px;
   font-size: 14px;
-  color: #111827;
+  color: #000000;
   background: #ffffff;
-  transition: border-color 0.2s;
 
   &::placeholder {
     color: #9ca3af;
@@ -711,164 +715,165 @@ export default {
 
   &:focus {
     outline: none;
-    border-color: #6366f1;
+    border-color: #5b21b6;
+    box-shadow: 0 0 0 3px rgba(91, 33, 182, 0.1);
   }
 }
 
-.builder-header {
-  margin-bottom: 20px;
-}
-
 .builder-title {
-  margin: 0;
-  font-size: 16px;
+  margin: 0 0 16px 0;
+  font-size: 14px;
   font-weight: 500;
-  color: #111827;
+  color: #000000;
 }
 
-.builder-container {
+.conditions-area {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 0;
 }
 
-.group-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.condition-item {
+  margin-bottom: 8px;
 }
 
-.condition-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.condition-row {
+.condition-content {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 16px;
-  background: #f3f4f6;
-  border-radius: 8px;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
-.condition-select,
-.condition-input,
-.condition-input-small {
+.select-field,
+.input-field,
+.input-small {
   padding: 8px 12px;
   border: 1px solid #d1d5db;
   border-radius: 6px;
-  font-size: 14px;
-  color: #111827;
+  font-size: 13px;
+  color: #000000;
   background: #ffffff;
 
   &:focus {
     outline: none;
-    border-color: #6366f1;
+    border-color: #5b21b6;
+    box-shadow: 0 0 0 3px rgba(91, 33, 182, 0.1);
   }
 }
 
-.condition-select {
-  min-width: 180px;
+.select-field {
+  min-width: 160px;
+  background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%239ca3af' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+  appearance: none;
 }
 
-.condition-input {
+.input-field {
   flex: 1;
-  min-width: 150px;
+  min-width: 120px;
 }
 
-.condition-input-small {
+.input-small {
   width: 80px;
 }
 
-.condition-label {
-  font-size: 14px;
+.text-label {
+  font-size: 13px;
   color: #6b7280;
 }
 
 .btn-delete {
-  padding: 8px;
+  padding: 6px;
   background: transparent;
-  color: #ef4444;
+  color: #dc2626;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
+  transition: all 0.15s;
+  margin-left: auto;
 
   &:hover {
     background: #fee2e2;
   }
-}
 
-.or-divider {
-  padding: 4px 16px;
-  font-size: 13px;
-  font-weight: 500;
-  color: #6b7280;
-  text-align: left;
-}
-
-.and-divider {
-  padding: 4px 0;
-  font-size: 13px;
-  font-weight: 500;
-  color: #6b7280;
-}
-
-.btn-add-or,
-.btn-add-and {
-  padding: 10px 16px;
-  background: transparent;
-  color: #6366f1;
-  border: 2px dashed #c7d2fe;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-  text-align: left;
-  width: fit-content;
-
-  &:hover {
-    background: #eef2ff;
-    border-color: #6366f1;
+  svg {
+    width: 16px;
+    height: 16px;
   }
 }
 
-.btn-add-and {
-  margin-top: 4px;
+.divider-ou {
+  padding: 8px 0 8px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.divider-e {
+  padding: 12px 0 12px 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn-add-condition,
+.btn-add-group {
+  padding: 10px 16px;
+  background: transparent;
+  color: #5b21b6;
+  border: 2px dashed #c4b5fd;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: left;
+  width: fit-content;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+
+  &:hover {
+    background: #f5f3ff;
+    border-color: #5b21b6;
+  }
+
+  .plus-icon {
+    font-size: 16px;
+    font-weight: 600;
+  }
 }
 
 /* Responsive */
-@media (max-width: 1024px) {
-  .condition-row {
-    flex-wrap: wrap;
-  }
-}
-
 @media (max-width: 768px) {
   .page-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 16px;
+    gap: 12px;
   }
 
-  .info-row {
+  .fields-row {
     grid-template-columns: 1fr;
   }
 
-  .condition-row {
+  .condition-content {
     flex-direction: column;
     align-items: stretch;
-  }
 
-  .condition-select {
-    min-width: unset;
-    width: 100%;
+    .select-field,
+    .input-field {
+      width: 100%;
+    }
   }
 
   .btn-delete {
