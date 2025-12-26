@@ -1,280 +1,255 @@
 <template>
-  <div class="segmentation-builder" :style="wrapperStyle">
-    <!-- Header -->
-    <div class="builder-header">
-      <h2 class="title">{{ content?.title || 'Criar Segmento' }}</h2>
-      <p v-if="content?.description" class="description">{{ content?.description }}</p>
-    </div>
-
-    <!-- Segment Name and Description -->
-    <div class="segment-info">
-      <div class="form-group">
-        <label>Nome do Segmento *</label>
-        <input
-          v-model="segmentName"
-          type="text"
-          class="input"
-          placeholder="Ex: VIPs de Eletrônicos"
-          @input="handleSegmentNameChange"
-        />
-      </div>
-
-      <div class="form-group">
-        <label>Descrição (opcional)</label>
-        <textarea
-          v-model="segmentDescription"
-          class="textarea"
-          placeholder="Ex: Clientes que gastaram mais de R$10.000 em eletrônicos"
-          rows="2"
-          @input="handleSegmentDescriptionChange"
-        />
+  <div class="segmentation-page">
+    <!-- Top Header -->
+    <div class="page-header">
+      <h1 class="page-title">{{ content?.title || 'Criar Segmento' }}</h1>
+      <div class="header-actions">
+        <button @click="handleCancel" class="btn-cancel" type="button">
+          Cancelar
+        </button>
+        <button
+          @click="handleSave"
+          :disabled="!canSave"
+          class="btn-save"
+          type="button"
+        >
+          Salvar segmento
+        </button>
       </div>
     </div>
 
-    <!-- Groups -->
-    <div class="groups-container">
-      <div
-        v-for="(group, groupIndex) in groups"
-        :key="group.groupNumber"
-        class="group-card"
-      >
-        <!-- Group Header -->
-        <div class="group-header">
-          <div class="group-title">
-            <span class="group-badge">Grupo {{ group.groupNumber }}</span>
-            <span class="group-logic-hint">Condições dentro do grupo: OR</span>
-          </div>
-          <button
-            v-if="groups.length > 1"
-            @click="removeGroup(groupIndex)"
-            class="btn-remove"
-            type="button"
-          >
-            ✕ Remover Grupo
-          </button>
+    <!-- Content Area -->
+    <div class="page-content">
+      <!-- Section Header -->
+      <div class="section-header">
+        <h2 class="section-title">Construtor de segmento</h2>
+        <p class="section-description">
+          Os segmentos permitem rastrear e analisar clientes que atendem a certos critérios
+        </p>
+      </div>
+
+      <!-- Name and Description Row -->
+      <div class="info-row">
+        <div class="form-field">
+          <label class="field-label">Nome *</label>
+          <input
+            v-model="segmentName"
+            type="text"
+            class="field-input"
+            placeholder="Digite o nome do segmento"
+            @input="handleSegmentNameChange"
+          />
         </div>
 
-        <!-- Conditions -->
-        <div class="conditions-container">
-          <div
-            v-for="(condition, condIndex) in group.conditions"
-            :key="`${group.groupNumber}-${condIndex}`"
-            class="condition-row"
-          >
-            <!-- Field Selector -->
-            <div class="condition-field">
-              <label>Campo</label>
-              <select
-                v-model="condition.field"
-                @change="handleFieldChange(groupIndex, condIndex)"
-                class="select"
-              >
-                <option value="">Selecione um campo</option>
-                <optgroup
-                  v-for="category in fieldCategories"
-                  :key="category.label"
-                  :label="category.label"
+        <div class="form-field">
+          <label class="field-label">Descrição</label>
+          <input
+            v-model="segmentDescription"
+            type="text"
+            class="field-input"
+            placeholder="Digite a descrição do segmento"
+            @input="handleSegmentDescriptionChange"
+          />
+        </div>
+      </div>
+
+      <!-- Segment Builder Header -->
+      <div class="builder-header">
+        <h3 class="builder-title">Criar um segmento para clientes que:</h3>
+      </div>
+
+      <!-- Groups and Conditions -->
+      <div class="builder-container">
+        <template v-for="(group, groupIndex) in groups" :key="group.groupNumber">
+          <!-- Group Container -->
+          <div class="group-wrapper">
+            <!-- Conditions in this group -->
+            <div
+              v-for="(condition, condIndex) in group.conditions"
+              :key="`${group.groupNumber}-${condIndex}`"
+              class="condition-wrapper"
+            >
+              <div class="condition-row">
+                <!-- Field Selector -->
+                <select
+                  v-model="condition.field"
+                  @change="handleFieldChange(groupIndex, condIndex)"
+                  class="condition-select"
                 >
-                  <option
-                    v-for="field in category.fields"
-                    :key="field.value"
-                    :value="field.value"
+                  <option value="">Selecione o Critério</option>
+                  <optgroup
+                    v-for="category in fieldCategories"
+                    :key="category.label"
+                    :label="category.label"
                   >
-                    {{ field.label }}
-                  </option>
-                </optgroup>
-              </select>
-            </div>
+                    <option
+                      v-for="field in category.fields"
+                      :key="field.value"
+                      :value="field.value"
+                    >
+                      {{ field.label }}
+                    </option>
+                  </optgroup>
+                </select>
 
-            <!-- Operator Selector -->
-            <div v-if="condition.field" class="condition-operator">
-              <label>Operador</label>
-              <select
-                v-model="condition.operator"
-                @change="handleOperatorChange(groupIndex, condIndex)"
-                class="select"
-              >
-                <option value="">Selecione</option>
-                <option
-                  v-for="op in getOperatorsForField(condition.field)"
-                  :key="op.value"
-                  :value="op.value"
+                <!-- Operator -->
+                <select
+                  v-if="condition.field"
+                  v-model="condition.operator"
+                  @change="handleOperatorChange(groupIndex, condIndex)"
+                  class="condition-select"
                 >
-                  {{ op.label }}
-                </option>
-              </select>
-            </div>
+                  <option value="">Selecione</option>
+                  <option
+                    v-for="op in getOperatorsForField(condition.field)"
+                    :key="op.value"
+                    :value="op.value"
+                  >
+                    {{ op.label }}
+                  </option>
+                </select>
 
-            <!-- Value Inputs (Dynamic based on type and operator) -->
-            <div v-if="condition.operator" class="condition-value">
-              <label>Valor</label>
+                <!-- Value Input (dynamic based on type) -->
+                <template v-if="condition.operator">
+                  <!-- Numeric between -->
+                  <template v-if="getFieldType(condition.field) === 'numeric' && condition.operator === 'between'">
+                    <input
+                      v-model.number="condition.valueMin"
+                      type="number"
+                      class="condition-input-small"
+                      placeholder="Mín"
+                    />
+                    <input
+                      v-model.number="condition.valueMax"
+                      type="number"
+                      class="condition-input-small"
+                      placeholder="Máx"
+                    />
+                  </template>
 
-              <!-- Numeric Fields -->
-              <template v-if="getFieldType(condition.field) === 'numeric'">
-                <div v-if="condition.operator === 'between'" class="value-between">
+                  <!-- Numeric single value -->
                   <input
+                    v-else-if="getFieldType(condition.field) === 'numeric'"
                     v-model.number="condition.valueMin"
                     type="number"
-                    class="input input-small"
-                    placeholder="Mín"
+                    class="condition-input-small"
+                    placeholder="30"
                   />
-                  <span class="separator">até</span>
+
+                  <!-- Text -->
                   <input
-                    v-model.number="condition.valueMax"
-                    type="number"
-                    class="input input-small"
-                    placeholder="Máx"
+                    v-else-if="getFieldType(condition.field) === 'text'"
+                    v-model="condition.valueText"
+                    type="text"
+                    class="condition-input"
+                    placeholder="Digite o texto"
                   />
-                </div>
-                <input
-                  v-else
-                  v-model.number="condition.valueMin"
-                  type="number"
-                  class="input"
-                  placeholder="Valor"
-                />
-              </template>
 
-              <!-- Text Fields -->
-              <input
-                v-else-if="getFieldType(condition.field) === 'text'"
-                v-model="condition.valueText"
-                type="text"
-                class="input"
-                placeholder="Digite o texto"
-              />
+                  <!-- Boolean -->
+                  <select
+                    v-else-if="getFieldType(condition.field) === 'boolean'"
+                    v-model.number="condition.valueMin"
+                    class="condition-select"
+                  >
+                    <option :value="1">Sim</option>
+                    <option :value="0">Não</option>
+                  </select>
 
-              <!-- Boolean Fields -->
-              <select
-                v-else-if="getFieldType(condition.field) === 'boolean'"
-                v-model.number="condition.valueMin"
-                class="select"
-              >
-                <option :value="1">Sim (Ativo)</option>
-                <option :value="0">Não (Inativo)</option>
-              </select>
+                  <!-- UUID -->
+                  <input
+                    v-else-if="getFieldType(condition.field) === 'uuid'"
+                    v-model="condition.valueUuid"
+                    type="text"
+                    class="condition-input"
+                    placeholder="ID"
+                  />
 
-              <!-- UUID Fields - Placeholder for now -->
-              <input
-                v-else-if="getFieldType(condition.field) === 'uuid'"
-                v-model="condition.valueUuid"
-                type="text"
-                class="input"
-                placeholder="ID do produto/categoria"
-              />
+                  <!-- Date -->
+                  <input
+                    v-else-if="getFieldType(condition.field) === 'date'"
+                    v-model.number="condition.days"
+                    type="number"
+                    class="condition-input-small"
+                    placeholder="Dias"
+                  />
+                </template>
 
-              <!-- Date Fields -->
-              <template v-else-if="getFieldType(condition.field) === 'date'">
-                <input
-                  v-model.number="condition.days"
-                  type="number"
-                  class="input"
-                  placeholder="Dias"
-                />
-              </template>
-            </div>
+                <!-- Temporal Filter -->
+                <select
+                  v-if="condition.field && supportsTemporalFilter(condition.field)"
+                  v-model="condition.timeOperator"
+                  class="condition-select"
+                >
+                  <option value="over_all_time">desde sempre</option>
+                  <option value="in_the_last">nos últimos X dias</option>
+                  <option value="between_dates">entre datas</option>
+                </select>
 
-            <!-- Temporal Filter (if supported) -->
-            <div
-              v-if="condition.field && supportsTemporalFilter(condition.field)"
-              class="condition-temporal"
-            >
-              <label>Período</label>
-              <select v-model="condition.timeOperator" class="select">
-                <option value="over_all_time">Desde sempre</option>
-                <option value="in_the_last">Nos últimos X dias</option>
-                <option value="between_dates">Entre datas</option>
-              </select>
+                <!-- Days input for temporal -->
+                <template v-if="condition.timeOperator === 'in_the_last'">
+                  <input
+                    v-model.number="condition.days"
+                    type="number"
+                    class="condition-input-small"
+                    placeholder="30"
+                  />
+                  <span class="condition-label">dias</span>
+                </template>
 
-              <input
-                v-if="condition.timeOperator === 'in_the_last'"
-                v-model.number="condition.days"
-                type="number"
-                class="input input-small"
-                placeholder="Dias"
-              />
+                <!-- Date range for temporal -->
+                <template v-if="condition.timeOperator === 'between_dates'">
+                  <input
+                    v-model="condition.startDate"
+                    type="date"
+                    class="condition-input-small"
+                  />
+                  <input
+                    v-model="condition.endDate"
+                    type="date"
+                    class="condition-input-small"
+                  />
+                </template>
 
-              <div
-                v-if="condition.timeOperator === 'between_dates'"
-                class="date-range"
-              >
-                <input
-                  v-model="condition.startDate"
-                  type="date"
-                  class="input input-small"
-                />
-                <span class="separator">até</span>
-                <input
-                  v-model="condition.endDate"
-                  type="date"
-                  class="input input-small"
-                />
+                <!-- Delete button -->
+                <button
+                  @click="removeCondition(groupIndex, condIndex)"
+                  class="btn-delete"
+                  type="button"
+                  title="Remover"
+                >
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M4 4L12 12M4 12L12 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
+                </button>
+              </div>
+
+              <!-- OU divider (except for last condition in group) -->
+              <div v-if="condIndex < group.conditions.length - 1" class="or-divider">
+                OU
               </div>
             </div>
 
-            <!-- Remove Condition Button -->
+            <!-- Add OR button -->
             <button
-              v-if="group.conditions.length > 1"
-              @click="removeCondition(groupIndex, condIndex)"
-              class="btn-remove-condition"
+              @click="addCondition(groupIndex)"
+              class="btn-add-or"
               type="button"
-              title="Remover condição"
             >
-              ✕
+              + OU
             </button>
           </div>
 
-          <!-- Add Condition Button -->
-          <button
-            @click="addCondition(groupIndex)"
-            class="btn-add-condition"
-            type="button"
-          >
-            + Adicionar Condição (OR)
-          </button>
-        </div>
+          <!-- E divider (except for last group) -->
+          <div v-if="groupIndex < groups.length - 1" class="and-divider">
+            E
+          </div>
+        </template>
 
-        <!-- AND Divider (except for last group) -->
-        <div v-if="groupIndex < groups.length - 1" class="and-divider">
-          <span class="and-badge">AND</span>
-        </div>
+        <!-- Add AND button -->
+        <button @click="addGroup" class="btn-add-and" type="button">
+          + E
+        </button>
       </div>
-
-      <!-- Add Group Button -->
-      <button @click="addGroup" class="btn-add-group" type="button">
-        + Adicionar Grupo (AND)
-      </button>
-    </div>
-
-    <!-- Preview Section -->
-    <div v-if="content?.showPreview" class="preview-section">
-      <button
-        @click="handlePreview"
-        :disabled="isLoadingPreview"
-        class="btn-preview"
-        type="button"
-      >
-        {{ isLoadingPreview ? 'Carregando...' : 'Preview: Ver Estimativa' }}
-      </button>
-
-      <div v-if="previewCount !== null" class="preview-result">
-        <span class="preview-icon">👥</span>
-        <span class="preview-text">
-          {{ previewCount }} {{ previewCount === 1 ? 'cliente' : 'clientes' }} encontrados
-        </span>
-      </div>
-    </div>
-
-    <!-- Actions -->
-    <div class="actions">
-      <button
-        @click="handleSave"
-        :disabled="!canSave"
-        class="btn-primary"
-        type="button"
-      >
-        💾 Salvar Segmento
-      </button>
     </div>
   </div>
 </template>
@@ -285,7 +260,7 @@ import { ref, computed, watch } from 'vue';
 // Field Definitions
 const FIELD_DEFINITIONS = {
   // v1 - Comportamento Básico
-  frequency: { type: 'numeric', label: 'Frequência de Compras', temporal: true },
+  frequency: { type: 'numeric', label: 'Número de pedidos', temporal: true },
   total_value: { type: 'numeric', label: 'Valor Total Gasto', temporal: true },
   recencia: { type: 'numeric', label: 'Dias Desde Última Compra', temporal: true },
 
@@ -325,9 +300,9 @@ const FIELD_DEFINITIONS = {
 
 const FIELD_CATEGORIES = [
   {
-    label: '📊 Comportamento Básico',
+    label: '📊 Comportamento',
     fields: [
-      { value: 'frequency', label: 'Frequência de Compras' },
+      { value: 'frequency', label: 'Número de pedidos' },
       { value: 'total_value', label: 'Valor Total Gasto' },
       { value: 'recencia', label: 'Dias Desde Última Compra' },
     ],
@@ -389,30 +364,18 @@ export default {
   },
   emits: ['trigger-event'],
   setup(props, { emit }) {
-    // State
     const segmentName = ref('');
     const segmentDescription = ref('');
     const groups = ref([createNewGroup(1)]);
-    const previewCount = ref(null);
-    const isLoadingPreview = ref(false);
 
-    // Field definitions
     const fieldCategories = FIELD_CATEGORIES;
 
-    // Internal variables
     const { value: segmentData, setValue: setSegmentData } = wwLib.wwVariable.useComponentVariable({
       uid: props.uid,
       name: 'segmentData',
       type: 'object',
       defaultValue: {},
     });
-
-    // Computed
-    const wrapperStyle = computed(() => ({
-      '--primary-color': props.content?.primaryColor || '#007aff',
-      '--background-color': props.content?.backgroundColor || '#ffffff',
-      '--border-color': props.content?.borderColor || '#e0e0e0',
-    }));
 
     const canSave = computed(() => {
       return (
@@ -422,7 +385,6 @@ export default {
       );
     });
 
-    // Helper Functions
     function createNewCondition() {
       return {
         field: '',
@@ -457,22 +419,22 @@ export default {
 
       const operatorsByType = {
         numeric: [
-          { value: '>=', label: 'Maior ou igual a' },
-          { value: '<=', label: 'Menor ou igual a' },
-          { value: '=', label: 'Igual a' },
-          { value: 'between', label: 'Entre' },
+          { value: '>=', label: 'maior ou igual a' },
+          { value: '<=', label: 'menor ou igual a' },
+          { value: '=', label: 'igual a' },
+          { value: 'between', label: 'entre' },
         ],
         text: [
-          { value: '=', label: 'Igual a' },
-          { value: 'contains', label: 'Contém' },
-          { value: 'starts_with', label: 'Começa com' },
+          { value: '=', label: 'igual a' },
+          { value: 'contains', label: 'contém' },
+          { value: 'starts_with', label: 'começa com' },
         ],
-        uuid: [{ value: '=', label: 'Igual a' }],
-        boolean: [{ value: '=', label: 'Igual a' }],
+        uuid: [{ value: '=', label: 'igual a' }],
+        boolean: [{ value: '=', label: 'é' }],
         date: [
-          { value: 'in_the_next', label: 'Nos próximos X dias' },
-          { value: 'in_the_last', label: 'Nos últimos X dias' },
-          { value: 'between_dates', label: 'Entre datas' },
+          { value: 'in_the_next', label: 'nos próximos' },
+          { value: 'in_the_last', label: 'nos últimos' },
+          { value: 'between_dates', label: 'entre datas' },
         ],
       };
 
@@ -484,7 +446,6 @@ export default {
       return field?.temporal === true;
     }
 
-    // Group/Condition Management
     function addGroup() {
       const newGroupNumber = groups.value.length + 1;
       groups.value.push(createNewGroup(newGroupNumber));
@@ -492,8 +453,8 @@ export default {
     }
 
     function removeGroup(index) {
+      if (groups.value.length <= 1) return;
       groups.value.splice(index, 1);
-      // Renumber groups
       groups.value.forEach((group, idx) => {
         group.groupNumber = idx + 1;
       });
@@ -506,13 +467,18 @@ export default {
     }
 
     function removeCondition(groupIndex, conditionIndex) {
-      groups.value[groupIndex].conditions.splice(conditionIndex, 1);
-      updateSegmentData();
+      const group = groups.value[groupIndex];
+      if (group.conditions.length <= 1) {
+        // Remove the entire group if it's the last condition
+        removeGroup(groupIndex);
+      } else {
+        group.conditions.splice(conditionIndex, 1);
+        updateSegmentData();
+      }
     }
 
     function handleFieldChange(groupIndex, condIndex) {
       const condition = groups.value[groupIndex].conditions[condIndex];
-      // Reset operator and values when field changes
       condition.operator = '';
       condition.valueText = '';
       condition.valueUuid = '';
@@ -524,7 +490,6 @@ export default {
 
     function handleOperatorChange(groupIndex, condIndex) {
       const condition = groups.value[groupIndex].conditions[condIndex];
-      // Reset values when operator changes
       condition.valueText = '';
       condition.valueUuid = '';
       condition.valueMin = null;
@@ -540,13 +505,11 @@ export default {
       updateSegmentData();
     }
 
-    // Update internal variable
     function updateSegmentData() {
       const payload = buildPayload();
       setSegmentData(payload);
     }
 
-    // Build API Payload
     function buildPayload() {
       return {
         empresa: props.content?.empresaId,
@@ -562,14 +525,12 @@ export default {
                 operator: c.operator,
               };
 
-              // Add appropriate value fields
               if (c.valueText) condition.valueText = c.valueText;
               if (c.valueUuid) condition.valueUuid = c.valueUuid;
               if (c.valueMin !== null && c.valueMin !== undefined) condition.valueMin = c.valueMin;
               if (c.valueMax !== null && c.valueMax !== undefined) condition.valueMax = c.valueMax;
               if (c.valueList?.length > 0) condition.valueList = c.valueList;
 
-              // Add temporal filters if supported
               if (supportsTemporalFilter(c.field)) {
                 condition.timeOperator = c.timeOperator;
                 if (c.timeOperator === 'in_the_last' && c.days) {
@@ -587,413 +548,331 @@ export default {
       };
     }
 
-    // Preview
-    async function handlePreview() {
-      isLoadingPreview.value = true;
-      previewCount.value = null;
-
-      try {
-        const payload = buildPayload();
-
-        emit('trigger-event', {
-          name: 'preview-requested',
-          event: { payload }
-        });
-
-        // Simulate API call (replace with actual API call)
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        previewCount.value = Math.floor(Math.random() * 500) + 1;
-      } catch (error) {
-        console.error('Preview error:', error);
-      } finally {
-        isLoadingPreview.value = false;
-      }
-    }
-
-    // Save
     function handleSave() {
       if (!canSave.value) return;
-
       const payload = buildPayload();
-
       emit('trigger-event', {
         name: 'save-segment',
         event: { payload }
       });
     }
 
-    // Watch for changes
+    function handleCancel() {
+      emit('trigger-event', {
+        name: 'cancel',
+        event: {}
+      });
+    }
+
     watch([segmentName, segmentDescription, groups], updateSegmentData, { deep: true });
 
     return {
       segmentName,
       segmentDescription,
       groups,
-      previewCount,
-      isLoadingPreview,
       fieldCategories,
-      wrapperStyle,
       canSave,
       getFieldType,
       getOperatorsForField,
       supportsTemporalFilter,
       addGroup,
-      removeGroup,
       addCondition,
       removeCondition,
       handleFieldChange,
       handleOperatorChange,
       handleSegmentNameChange,
       handleSegmentDescriptionChange,
-      handlePreview,
       handleSave,
+      handleCancel,
     };
   },
 };
 </script>
 
 <style lang="scss" scoped>
-.segmentation-builder {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 24px;
-  background-color: var(--background-color);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+.segmentation-page {
+  min-height: 100vh;
+  background-color: #f9fafb;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-.builder-header {
-  margin-bottom: 32px;
-
-  .title {
-    margin: 0 0 8px 0;
-    font-size: 28px;
-    font-weight: 700;
-    color: #1a1a1a;
-  }
-
-  .description {
-    margin: 0;
-    font-size: 14px;
-    color: #666;
-  }
-}
-
-.segment-info {
-  margin-bottom: 32px;
-  padding: 20px;
-  background: #f9f9f9;
-  border-radius: 8px;
-}
-
-.form-group {
-  margin-bottom: 16px;
-
-  &:last-child {
-    margin-bottom: 0;
-  }
-
-  label {
-    display: block;
-    margin-bottom: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    color: #333;
-  }
-}
-
-.input,
-.select,
-.textarea {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  font-size: 14px;
-  font-family: inherit;
-  transition: border-color 0.2s;
-
-  &:focus {
-    outline: none;
-    border-color: var(--primary-color);
-  }
-}
-
-.textarea {
-  resize: vertical;
-}
-
-.input-small {
-  width: auto;
-  min-width: 100px;
-}
-
-.groups-container {
-  margin-bottom: 32px;
-}
-
-.group-card {
-  margin-bottom: 24px;
-  padding: 20px;
-  background: #fff;
-  border: 2px solid var(--border-color);
-  border-radius: 12px;
-  position: relative;
-}
-
-.group-header {
+.page-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  padding: 20px 32px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
 }
 
-.group-title {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.group-badge {
-  display: inline-block;
-  padding: 6px 12px;
-  background: var(--primary-color);
-  color: #fff;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.group-logic-hint {
-  font-size: 12px;
-  color: #666;
-  font-style: italic;
-}
-
-.conditions-container {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.condition-row {
-  display: grid;
-  grid-template-columns: 2fr 1.5fr 2fr 1.5fr auto;
-  gap: 12px;
-  align-items: end;
-  padding: 16px;
-  background: #f9f9f9;
-  border-radius: 8px;
-  position: relative;
-}
-
-.condition-field,
-.condition-operator,
-.condition-value,
-.condition-temporal {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-
-  label {
-    font-size: 12px;
-    font-weight: 600;
-    color: #555;
-  }
-}
-
-.value-between,
-.date-range {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-
-  .separator {
-    font-size: 12px;
-    color: #666;
-  }
-}
-
-.btn-remove-condition {
-  padding: 8px 12px;
-  background: #ff3b30;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 16px;
-  line-height: 1;
-  transition: background 0.2s;
-
-  &:hover {
-    background: #e02020;
-  }
-}
-
-.btn-add-condition {
-  margin-top: 8px;
-  padding: 10px 16px;
-  background: #fff;
-  color: var(--primary-color);
-  border: 2px dashed var(--primary-color);
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  transition: all 0.2s;
-
-  &:hover {
-    background: rgba(0, 122, 255, 0.05);
-  }
-}
-
-.btn-remove {
-  padding: 8px 16px;
-  background: #ff3b30;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 600;
-  transition: background 0.2s;
-
-  &:hover {
-    background: #e02020;
-  }
-}
-
-.and-divider {
-  display: flex;
-  justify-content: center;
-  margin: 24px 0;
-}
-
-.and-badge {
-  display: inline-block;
-  padding: 8px 20px;
-  background: #34c759;
-  color: #fff;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-}
-
-.btn-add-group {
-  width: 100%;
-  padding: 14px;
-  background: #fff;
-  color: #34c759;
-  border: 2px dashed #34c759;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 15px;
-  font-weight: 600;
-  transition: all 0.2s;
-
-  &:hover {
-    background: rgba(52, 199, 89, 0.05);
-  }
-}
-
-.preview-section {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 24px;
-  padding: 20px;
-  background: #f0f0f0;
-  border-radius: 8px;
-}
-
-.btn-preview {
-  padding: 12px 24px;
-  background: #5856d6;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  transition: background 0.2s;
-
-  &:hover:not(:disabled) {
-    background: #4745b8;
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-}
-
-.preview-result {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 20px;
-  background: #fff;
-  border-radius: 6px;
-  font-size: 15px;
-  font-weight: 600;
-  color: #333;
-}
-
-.preview-icon {
+.page-title {
+  margin: 0;
   font-size: 20px;
+  font-weight: 600;
+  color: #111827;
 }
 
-.actions {
+.header-actions {
   display: flex;
-  justify-content: flex-end;
   gap: 12px;
 }
 
-.btn-primary {
-  padding: 14px 32px;
-  background: var(--primary-color);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
+.btn-cancel {
+  padding: 8px 16px;
+  background: #ffffff;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
-  font-size: 16px;
-  font-weight: 600;
+  transition: all 0.2s;
+
+  &:hover {
+    background: #f9fafb;
+  }
+}
+
+.btn-save {
+  padding: 8px 16px;
+  background: #6366f1;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
   transition: all 0.2s;
 
   &:hover:not(:disabled) {
-    background: #0056b3;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+    background: #4f46e5;
   }
 
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
-    transform: none;
   }
+}
+
+.page-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 32px;
+}
+
+.section-header {
+  margin-bottom: 32px;
+}
+
+.section-title {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.section-description {
+  margin: 0;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.info-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.field-input {
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #111827;
+  background: #ffffff;
+  transition: border-color 0.2s;
+
+  &::placeholder {
+    color: #9ca3af;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: #6366f1;
+  }
+}
+
+.builder-header {
+  margin-bottom: 20px;
+}
+
+.builder-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: #111827;
+}
+
+.builder-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.group-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.condition-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.condition-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: #f3f4f6;
+  border-radius: 8px;
+}
+
+.condition-select,
+.condition-input,
+.condition-input-small {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #111827;
+  background: #ffffff;
+
+  &:focus {
+    outline: none;
+    border-color: #6366f1;
+  }
+}
+
+.condition-select {
+  min-width: 180px;
+}
+
+.condition-input {
+  flex: 1;
+  min-width: 150px;
+}
+
+.condition-input-small {
+  width: 80px;
+}
+
+.condition-label {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.btn-delete {
+  padding: 8px;
+  background: transparent;
+  color: #ef4444;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+
+  &:hover {
+    background: #fee2e2;
+  }
+}
+
+.or-divider {
+  padding: 4px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #6b7280;
+  text-align: left;
+}
+
+.and-divider {
+  padding: 4px 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.btn-add-or,
+.btn-add-and {
+  padding: 10px 16px;
+  background: transparent;
+  color: #6366f1;
+  border: 2px dashed #c7d2fe;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+  width: fit-content;
+
+  &:hover {
+    background: #eef2ff;
+    border-color: #6366f1;
+  }
+}
+
+.btn-add-and {
+  margin-top: 4px;
 }
 
 /* Responsive */
 @media (max-width: 1024px) {
   .condition-row {
-    grid-template-columns: 1fr;
-    gap: 12px;
+    flex-wrap: wrap;
   }
 }
 
 @media (max-width: 768px) {
-  .segmentation-builder {
-    padding: 16px;
-  }
-
-  .builder-header .title {
-    font-size: 24px;
-  }
-
-  .group-header {
+  .page-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 12px;
+    gap: 16px;
+  }
+
+  .info-row {
+    grid-template-columns: 1fr;
+  }
+
+  .condition-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .condition-select {
+    min-width: unset;
+    width: 100%;
+  }
+
+  .btn-delete {
+    align-self: flex-end;
   }
 }
 </style>

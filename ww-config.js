@@ -122,11 +122,9 @@ export default {
       default: true,
     },
     {
-      name: 'preview-requested',
-      label: { en: 'On preview requested', pt: 'Ao solicitar preview' },
-      event: {
-        payload: {},
-      },
+      name: 'cancel',
+      label: { en: 'On cancel', pt: 'Ao cancelar' },
+      event: {},
     },
   ],
 };
