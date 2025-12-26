@@ -58,190 +58,190 @@
         <!-- Groups and Conditions -->
         <div class="conditions-area">
           <template v-for="(group, groupIndex) in groups" :key="group.groupNumber">
-            <!-- Conditions in this group -->
-            <div
-              v-for="(condition, condIndex) in group.conditions"
-              :key="`${group.groupNumber}-${condIndex}`"
-              class="condition-item"
-            >
-              <div class="condition-content">
-                <!-- Field Selector -->
-                <select
-                  v-model="condition.field"
-                  @change="handleFieldChange(groupIndex, condIndex)"
-                  class="select-field"
-                >
-                  <option value="">Selecione o Critério</option>
-                  <optgroup
-                    v-for="category in fieldCategories"
-                    :key="category.label"
-                    :label="category.label"
+            <!-- Group Box -->
+            <div class="group-box">
+              <!-- Conditions in this group -->
+              <div
+                v-for="(condition, condIndex) in group.conditions"
+                :key="`${group.groupNumber}-${condIndex}`"
+                class="condition-row"
+              >
+                <!-- OU Label -->
+                <div v-if="condIndex > 0" class="label-ou">OU</div>
+
+                <!-- Condition Content -->
+                <div class="condition-content">
+                  <!-- Field Selector -->
+                  <select
+                    v-model="condition.field"
+                    @change="handleFieldChange(groupIndex, condIndex)"
+                    class="select-field"
                   >
-                    <option
-                      v-for="field in category.fields"
-                      :key="field.value"
-                      :value="field.value"
+                    <option value="">Selecione o Critério</option>
+                    <optgroup
+                      v-for="category in fieldCategories"
+                      :key="category.label"
+                      :label="category.label"
                     >
-                      {{ field.label }}
-                    </option>
-                  </optgroup>
-                </select>
+                      <option
+                        v-for="field in category.fields"
+                        :key="field.value"
+                        :value="field.value"
+                      >
+                        {{ field.label }}
+                      </option>
+                    </optgroup>
+                  </select>
 
-                <!-- Operator -->
-                <select
-                  v-if="condition.field"
-                  v-model="condition.operator"
-                  @change="handleOperatorChange(groupIndex, condIndex)"
-                  class="select-field"
-                >
-                  <option value="">Selecione</option>
-                  <option
-                    v-for="op in getOperatorsForField(condition.field)"
-                    :key="op.value"
-                    :value="op.value"
+                  <!-- Operator -->
+                  <select
+                    v-if="condition.field"
+                    v-model="condition.operator"
+                    @change="handleOperatorChange(groupIndex, condIndex)"
+                    class="select-field"
                   >
-                    {{ op.label }}
-                  </option>
-                </select>
+                    <option value="">Selecione</option>
+                    <option
+                      v-for="op in getOperatorsForField(condition.field)"
+                      :key="op.value"
+                      :value="op.value"
+                    >
+                      {{ op.label }}
+                    </option>
+                  </select>
 
-                <!-- Value Inputs -->
-                <template v-if="condition.operator">
-                  <!-- Numeric between -->
-                  <template v-if="getFieldType(condition.field) === 'numeric' && condition.operator === 'between'">
+                  <!-- Value Inputs -->
+                  <template v-if="condition.operator">
+                    <!-- Numeric between -->
+                    <template v-if="getFieldType(condition.field) === 'numeric' && condition.operator === 'between'">
+                      <input
+                        v-model.number="condition.valueMin"
+                        type="number"
+                        class="input-small"
+                        placeholder="Mín"
+                      />
+                      <input
+                        v-model.number="condition.valueMax"
+                        type="number"
+                        class="input-small"
+                        placeholder="Máx"
+                      />
+                    </template>
+
+                    <!-- Numeric single -->
                     <input
+                      v-else-if="getFieldType(condition.field) === 'numeric'"
                       v-model.number="condition.valueMin"
                       type="number"
                       class="input-small"
-                      placeholder="Mín"
+                      placeholder="30"
                     />
+
+                    <!-- Text -->
                     <input
-                      v-model.number="condition.valueMax"
+                      v-else-if="getFieldType(condition.field) === 'text'"
+                      v-model="condition.valueText"
+                      type="text"
+                      class="input-field"
+                      placeholder="Digite"
+                    />
+
+                    <!-- Boolean -->
+                    <select
+                      v-else-if="getFieldType(condition.field) === 'boolean'"
+                      v-model.number="condition.valueMin"
+                      class="select-field"
+                    >
+                      <option :value="1">Sim</option>
+                      <option :value="0">Não</option>
+                    </select>
+
+                    <!-- UUID -->
+                    <input
+                      v-else-if="getFieldType(condition.field) === 'uuid'"
+                      v-model="condition.valueUuid"
+                      type="text"
+                      class="input-field"
+                      placeholder="ID"
+                    />
+
+                    <!-- Date -->
+                    <input
+                      v-else-if="getFieldType(condition.field) === 'date'"
+                      v-model.number="condition.days"
                       type="number"
                       class="input-small"
-                      placeholder="Máx"
+                      placeholder="Dias"
                     />
                   </template>
 
-                  <!-- Numeric single -->
-                  <input
-                    v-else-if="getFieldType(condition.field) === 'numeric'"
-                    v-model.number="condition.valueMin"
-                    type="number"
-                    class="input-small"
-                    placeholder="30"
-                  />
-
-                  <!-- Text -->
-                  <input
-                    v-else-if="getFieldType(condition.field) === 'text'"
-                    v-model="condition.valueText"
-                    type="text"
-                    class="input-field"
-                    placeholder="Digite"
-                  />
-
-                  <!-- Boolean -->
+                  <!-- Temporal Filter -->
                   <select
-                    v-else-if="getFieldType(condition.field) === 'boolean'"
-                    v-model.number="condition.valueMin"
+                    v-if="condition.field && supportsTemporalFilter(condition.field)"
+                    v-model="condition.timeOperator"
                     class="select-field"
                   >
-                    <option :value="1">Sim</option>
-                    <option :value="0">Não</option>
+                    <option value="over_all_time">desde sempre</option>
+                    <option value="in_the_last">nos últimos X dias</option>
+                    <option value="between_dates">entre datas</option>
                   </select>
 
-                  <!-- UUID -->
-                  <input
-                    v-else-if="getFieldType(condition.field) === 'uuid'"
-                    v-model="condition.valueUuid"
-                    type="text"
-                    class="input-field"
-                    placeholder="ID"
-                  />
+                  <!-- Days for temporal -->
+                  <template v-if="condition.timeOperator === 'in_the_last'">
+                    <input
+                      v-model.number="condition.days"
+                      type="number"
+                      class="input-small"
+                      placeholder="30"
+                    />
+                    <span class="text-label">dias</span>
+                  </template>
 
-                  <!-- Date -->
-                  <input
-                    v-else-if="getFieldType(condition.field) === 'date'"
-                    v-model.number="condition.days"
-                    type="number"
-                    class="input-small"
-                    placeholder="Dias"
-                  />
-                </template>
+                  <!-- Date range for temporal -->
+                  <template v-if="condition.timeOperator === 'between_dates'">
+                    <input
+                      v-model="condition.startDate"
+                      type="date"
+                      class="input-small"
+                    />
+                    <input
+                      v-model="condition.endDate"
+                      type="date"
+                      class="input-small"
+                    />
+                  </template>
 
-                <!-- Temporal Filter -->
-                <select
-                  v-if="condition.field && supportsTemporalFilter(condition.field)"
-                  v-model="condition.timeOperator"
-                  class="select-field"
-                >
-                  <option value="over_all_time">desde sempre</option>
-                  <option value="in_the_last">nos últimos X dias</option>
-                  <option value="between_dates">entre datas</option>
-                </select>
-
-                <!-- Days for temporal -->
-                <template v-if="condition.timeOperator === 'in_the_last'">
-                  <input
-                    v-model.number="condition.days"
-                    type="number"
-                    class="input-small"
-                    placeholder="30"
-                  />
-                  <span class="text-label">dias</span>
-                </template>
-
-                <!-- Date range for temporal -->
-                <template v-if="condition.timeOperator === 'between_dates'">
-                  <input
-                    v-model="condition.startDate"
-                    type="date"
-                    class="input-small"
-                  />
-                  <input
-                    v-model="condition.endDate"
-                    type="date"
-                    class="input-small"
-                  />
-                </template>
-
-                <!-- Delete Button -->
-                <button
-                  @click="removeCondition(groupIndex, condIndex)"
-                  class="btn-delete"
-                  type="button"
-                  title="Remover"
-                >
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M2 4H14M12.6667 4V13.3333C12.6667 14 12 14.6667 11.3333 14.6667H4.66667C4 14.6667 3.33333 14 3.33333 13.3333V4M5.33333 4V2.66667C5.33333 2 6 1.33333 6.66667 1.33333H9.33333C10 1.33333 10.6667 2 10.6667 2.66667V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M6.66667 7.33334V11.3333" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M9.33333 7.33334V11.3333" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                </button>
+                  <!-- Delete Button -->
+                  <button
+                    @click="removeCondition(groupIndex, condIndex)"
+                    class="btn-delete"
+                    type="button"
+                    title="Remover"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M2 4H14M12.6667 4V13.3333C12.6667 14 12 14.6667 11.3333 14.6667H4.66667C4 14.6667 3.33333 14 3.33333 13.3333V4M5.33333 4V2.66667C5.33333 2 6 1.33333 6.66667 1.33333H9.33333C10 1.33333 10.6667 2 10.6667 2.66667V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path d="M6.66667 7.33334V11.3333" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path d="M9.33333 7.33334V11.3333" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </button>
+                </div>
               </div>
 
-              <!-- OU divider -->
-              <div v-if="condIndex < group.conditions.length - 1" class="divider-ou">
-                OU
-              </div>
+              <!-- Add OU button inside group -->
+              <button
+                @click="addCondition(groupIndex)"
+                class="btn-add-condition"
+                type="button"
+              >
+                <span class="plus-icon">+</span> OU
+              </button>
             </div>
 
-            <!-- Add OU button -->
-            <button
-              @click="addCondition(groupIndex)"
-              class="btn-add-condition"
-              type="button"
-            >
-              <span class="plus-icon">+</span> OU
-            </button>
-
-            <!-- E divider -->
-            <div v-if="groupIndex < groups.length - 1" class="divider-e">
-              E
-            </div>
+            <!-- E Label between groups -->
+            <div v-if="groupIndex < groups.length - 1" class="label-e">E</div>
           </template>
 
-          <!-- Add E button -->
+          <!-- Add E button outside groups -->
           <button @click="addGroup" class="btn-add-group" type="button">
             <span class="plus-icon">+</span> E
           </button>
@@ -721,7 +721,7 @@ export default {
 }
 
 .builder-title {
-  margin: 0 0 16px 0;
+  margin: 0 0 20px 0;
   font-size: 14px;
   font-weight: 500;
   color: #000000;
@@ -730,11 +730,49 @@ export default {
 .conditions-area {
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 16px;
 }
 
-.condition-item {
-  margin-bottom: 8px;
+.group-box {
+  background: #f3f0ff;
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.condition-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.label-ou {
+  padding: 4px 12px;
+  background: #5b21b6;
+  color: #ffffff;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+  align-self: flex-start;
+  margin-top: 6px;
+}
+
+.label-e {
+  padding: 6px 16px;
+  background: #5b21b6;
+  color: #ffffff;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  width: fit-content;
+  margin: 8px 0;
 }
 
 .condition-content {
@@ -742,6 +780,7 @@ export default {
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+  flex: 1;
 }
 
 .select-field,
@@ -782,6 +821,7 @@ export default {
 .text-label {
   font-size: 13px;
   color: #6b7280;
+  font-weight: 400;
 }
 
 .btn-delete {
@@ -796,6 +836,7 @@ export default {
   justify-content: center;
   transition: all 0.15s;
   margin-left: auto;
+  flex-shrink: 0;
 
   &:hover {
     background: #fee2e2;
@@ -807,27 +848,8 @@ export default {
   }
 }
 
-.divider-ou {
-  padding: 8px 0 8px 12px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #6b7280;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.divider-e {
-  padding: 12px 0 12px 0;
-  font-size: 12px;
-  font-weight: 600;
-  color: #6b7280;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.btn-add-condition,
-.btn-add-group {
-  padding: 10px 16px;
+.btn-add-condition {
+  padding: 8px 14px;
   background: transparent;
   color: #5b21b6;
   border: 2px dashed #c4b5fd;
@@ -836,15 +858,39 @@ export default {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s;
-  text-align: left;
   width: fit-content;
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-bottom: 8px;
 
   &:hover {
-    background: #f5f3ff;
+    background: rgba(91, 33, 182, 0.05);
+    border-color: #5b21b6;
+  }
+
+  .plus-icon {
+    font-size: 16px;
+    font-weight: 600;
+  }
+}
+
+.btn-add-group {
+  padding: 8px 14px;
+  background: transparent;
+  color: #5b21b6;
+  border: 2px dashed #c4b5fd;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  width: fit-content;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  &:hover {
+    background: rgba(91, 33, 182, 0.05);
     border-color: #5b21b6;
   }
 
@@ -866,9 +912,17 @@ export default {
     grid-template-columns: 1fr;
   }
 
-  .condition-content {
+  .condition-row {
     flex-direction: column;
-    align-items: stretch;
+    align-items: flex-start;
+  }
+
+  .label-ou {
+    margin-top: 0;
+  }
+
+  .condition-content {
+    width: 100%;
 
     .select-field,
     .input-field {
@@ -877,6 +931,7 @@ export default {
   }
 
   .btn-delete {
+    margin-left: 0;
     align-self: flex-end;
   }
 }
