@@ -437,10 +437,10 @@
                         >
                           <option value="">Selecione</option>
                           <option value="criado">Criado</option>
-                          <option value="aprovado">Aprovado</option>
-                          <option value="recusado">Recusado</option>
-                          <option value="expirado">Expirado</option>
-                          <option value="resgatado">Resgatado</option>
+                          <option value="ativo">Ativo</option>
+                          <option value="utilizado">Utilizado</option>
+                          <option value="vencido">Vencido</option>
+                          <option value="cancelado">Cancelado</option>
                         </select>
                       </template>
                     </template>
