@@ -1929,6 +1929,17 @@ export default {
                 condition.days = c.days;
               }
 
+              // Tratamento especial para campos de data (cashback_expiry_date, cashback_creation_date)
+              const fieldType = getFieldType(c.field);
+              if (fieldType === 'date') {
+                if (c.operator === 'between_dates' && c.startDate && c.endDate) {
+                  condition.startDate = c.startDate;
+                  condition.endDate = c.endDate;
+                } else if ((c.operator === 'in_the_next' || c.operator === 'in_the_last') && c.days) {
+                  condition.days = c.days;
+                }
+              }
+
               conditionsArray.push(condition);
 
               // Add metrics if enabled for product or category
