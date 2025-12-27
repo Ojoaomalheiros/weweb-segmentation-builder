@@ -1871,6 +1871,7 @@ export default {
         descricao: segmentDescription.value,
         groups: groups.value.map(group => ({
           groupNumber: group.groupNumber,
+          group_number: group.groupNumber, // ✅ OBRIGATÓRIO no grupo (snake_case para backend)
           conditions: group.conditions
             .filter(c => c.field)
             .flatMap(c => {
@@ -1895,8 +1896,6 @@ export default {
               const condition = {
                 field: actualFieldName,
                 operator: c.operator,
-                groupNumber: group.groupNumber, // camelCase
-                group_number: group.groupNumber, // snake_case (backend compatibility)
               };
 
               if (c.valueText) condition.valueText = c.valueText;
@@ -1905,8 +1904,11 @@ export default {
               if (c.valueMax !== null && c.valueMax !== undefined) condition.valueMax = c.valueMax;
               if (c.valueList?.length > 0) condition.valueList = c.valueList;
 
+              // timeOperator é OBRIGATÓRIO para todas as condições (conforme API spec)
+              condition.timeOperator = c.timeOperator || 'over_all_time';
+
+              // Adicionar days/dates apenas se campo suporta filtro temporal E operador requer
               if (supportsTemporalFilter(c.field)) {
-                condition.timeOperator = c.timeOperator;
                 if (c.timeOperator === 'in_the_last' && c.days) {
                   condition.days = c.days;
                 }
@@ -1939,8 +1941,6 @@ export default {
           field: 'product_purchase_count',
           operator: condition.metricCount.operator,
           valueMin: condition.metricCount.value,
-          groupNumber: groupNumber,
-          group_number: groupNumber, // snake_case (backend compatibility)
           timeOperator: condition.timeOperator || 'over_all_time',
           ...(condition.timeOperator === 'in_the_last' && condition.days ? { days: condition.days } : {}),
           ...(condition.timeOperator === 'between_dates' && condition.startDate && condition.endDate
@@ -1954,8 +1954,6 @@ export default {
           field: 'product_purchase_value',
           operator: condition.metricValue.operator,
           valueMin: condition.metricValue.value,
-          groupNumber: groupNumber,
-          group_number: groupNumber, // snake_case (backend compatibility)
           timeOperator: condition.timeOperator || 'over_all_time',
           ...(condition.timeOperator === 'in_the_last' && condition.days ? { days: condition.days } : {}),
           ...(condition.timeOperator === 'between_dates' && condition.startDate && condition.endDate
@@ -1969,8 +1967,6 @@ export default {
           field: 'product_purchase_recency',
           operator: condition.metricRecency.operator,
           valueMin: condition.metricRecency.value,
-          groupNumber: groupNumber,
-          group_number: groupNumber, // snake_case (backend compatibility)
           // Note: product_purchase_recency does NOT support temporal filters
         });
       }
@@ -1996,8 +1992,6 @@ export default {
       const productCondition = {
         field: productFieldName,
         operator: criteria.productOperator,
-        groupNumber: groupNumber,
-        group_number: groupNumber,
         timeOperator: criteria.timeOperator || 'over_all_time',
       };
 
@@ -2026,8 +2020,6 @@ export default {
             field: 'product_purchase_count',
             operator: criteria.metricCount.operator,
             valueMin: criteria.metricCount.value,
-            groupNumber: groupNumber,
-            group_number: groupNumber,
             timeOperator: criteria.timeOperator || 'over_all_time',
             ...(criteria.timeOperator === 'in_the_last' && criteria.days ? { days: criteria.days } : {}),
             ...(criteria.timeOperator === 'between_dates' && criteria.startDate && criteria.endDate
@@ -2041,8 +2033,6 @@ export default {
             field: 'product_purchase_value',
             operator: criteria.metricValue.operator,
             valueMin: criteria.metricValue.value,
-            groupNumber: groupNumber,
-            group_number: groupNumber,
             timeOperator: criteria.timeOperator || 'over_all_time',
             ...(criteria.timeOperator === 'in_the_last' && criteria.days ? { days: criteria.days } : {}),
             ...(criteria.timeOperator === 'between_dates' && criteria.startDate && criteria.endDate
@@ -2056,8 +2046,6 @@ export default {
             field: 'product_purchase_recency',
             operator: criteria.metricRecency.operator,
             valueMin: criteria.metricRecency.value,
-            groupNumber: groupNumber,
-            group_number: groupNumber,
             // Note: product_purchase_recency does NOT support temporal filters
           });
         }
