@@ -891,8 +891,7 @@ export default {
 
     // Computed para detectar modo edição
     const isEditMode = computed(() => {
-      const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.has('id');
+      return !!props.content?.segmentId;
     });
 
     const pageTitle = computed(() => {
@@ -927,12 +926,11 @@ export default {
     // Carregar segmento da URL se houver ID
     async function loadSegmentFromUrl() {
       try {
-        // Obter parâmetros da URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const segmentoId = urlParams.get('id');
+        // Obter ID do segmento da propriedade (bindada ao query parameter)
+        const segmentoId = props.content?.segmentId;
 
         if (!segmentoId) {
-          console.log('Nenhum ID de segmento na URL - modo criação');
+          console.log('Nenhum ID de segmento - modo criação');
           return;
         }
 
@@ -1053,11 +1051,16 @@ export default {
       }
     }
 
+    // Watch for segmentId changes
+    watch(() => props.content?.segmentId, async (newId, oldId) => {
+      if (newId && newId !== oldId) {
+        console.log('🔄 Segment ID changed:', newId);
+        await loadSegmentFromUrl();
+      }
+    }, { immediate: true });
+
     onMounted(async () => {
       document.addEventListener('click', handleClickOutside);
-
-      // Verificar se existe ID na URL para carregar segmento existente
-      await loadSegmentFromUrl();
     });
 
     onUnmounted(() => {
@@ -2225,14 +2228,9 @@ export default {
       };
 
       // Se estiver em modo edição, adicionar id e version
-      if (isEditMode.value) {
-        const urlParams = new URLSearchParams(window.location.search);
-        const segmentoId = urlParams.get('id');
-
-        if (segmentoId) {
-          payload.id = parseInt(segmentoId);
-          payload.version = "2";
-        }
+      if (isEditMode.value && props.content?.segmentId) {
+        payload.id = parseInt(props.content.segmentId);
+        payload.version = "2";
       }
 
       console.log('=== PAYLOAD COMPLETO ===');

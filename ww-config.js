@@ -68,6 +68,20 @@ export default {
       /* wwEditor:end */
     },
 
+    segmentId: {
+      label: { en: 'Segment ID (for editing)', pt: 'ID do Segmento (para edição)' },
+      type: 'Number',
+      section: 'settings',
+      bindable: true,
+      /* wwEditor:start */
+      bindingValidation: {
+        type: 'number',
+        tooltip: 'Segment ID from URL query parameter (bind to page query params)',
+      },
+      propertyHelp: 'Bind to query parameter "id" to enable edit mode. When provided, the component will load and edit the existing segment.',
+      /* wwEditor:end */
+    },
+
     // Features
     showPreview: {
       label: { en: 'Show Preview', pt: 'Mostrar Preview' },
