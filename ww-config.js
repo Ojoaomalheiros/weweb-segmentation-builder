@@ -39,17 +39,32 @@ export default {
     },
 
     // Required Data
+    userCollection: {
+      label: { en: 'User Collection', pt: 'Collection do Usuário' },
+      type: 'Array',
+      section: 'settings',
+      bindable: true,
+      defaultValue: [],
+      /* wwEditor:start */
+      bindingValidation: {
+        type: 'array',
+        tooltip: 'Bind the user collection to get empresa ID automatically',
+      },
+      propertyHelp: 'Bind the "user" collection here - the empresa field will be extracted automatically',
+      /* wwEditor:end */
+    },
+
     empresaId: {
-      label: { en: 'Company ID', pt: 'ID da Empresa' },
+      label: { en: 'Company ID (Manual Override)', pt: 'ID da Empresa (Override Manual)' },
       type: 'Number',
       section: 'settings',
       bindable: true,
       /* wwEditor:start */
       bindingValidation: {
         type: 'number',
-        tooltip: 'Required: Company ID for the segment',
+        tooltip: 'Optional: Manually override empresa ID',
       },
-      propertyHelp: 'REQUIRED: The ID of the company creating the segment',
+      propertyHelp: 'OPTIONAL: Manual override for empresa ID (uses collection by default)',
       /* wwEditor:end */
     },
 
