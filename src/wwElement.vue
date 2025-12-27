@@ -425,6 +425,24 @@
                         />
                         <span class="text-label">dias</span>
                       </template>
+
+                      <!-- Status do Cashback (apenas para campos de cashback) -->
+                      <template v-if="condition.field === 'cashback_expiry_date' || condition.field === 'cashback_creation_date'">
+                        <span class="text-label">com status</span>
+                        <select
+                          v-model="condition.valueText"
+                          @change="updateSegmentData"
+                          class="select-field"
+                          :class="{ 'has-error': hasFieldError(condition, 'valueText') }"
+                        >
+                          <option value="">Selecione</option>
+                          <option value="criado">Criado</option>
+                          <option value="aprovado">Aprovado</option>
+                          <option value="recusado">Recusado</option>
+                          <option value="expirado">Expirado</option>
+                          <option value="resgatado">Resgatado</option>
+                        </select>
+                      </template>
                     </template>
 
                     <!-- Birthday Range (Período de Aniversário) -->
@@ -1353,10 +1371,18 @@ export default {
       } else if (fieldType === 'boolean') {
         return condition.valueMin === 1 ? 'Sim' : condition.valueMin === 0 ? 'Não' : '?';
       } else if (fieldType === 'date') {
+        let dateValue = '';
         if (condition.operator === 'between_dates') {
-          return `entre ${formatDate(condition.startDate)} e ${formatDate(condition.endDate)}`;
+          dateValue = `entre ${formatDate(condition.startDate)} e ${formatDate(condition.endDate)}`;
+        } else {
+          dateValue = `${condition.days || '?'} dias`;
         }
-        return `${condition.days || '?'} dias`;
+        // Adicionar status se for campo de cashback
+        if (condition.field === 'cashback_expiry_date' || condition.field === 'cashback_creation_date') {
+          const status = condition.valueText || '?';
+          return `${dateValue} com status "${status}"`;
+        }
+        return dateValue;
       } else if (fieldType === 'birthday_range') {
         if (condition.operator === 'between' && condition.valueMin && condition.valueMax) {
           const startStr = String(condition.valueMin).padStart(4, '0');
@@ -2119,6 +2145,10 @@ export default {
         }
         // For category field with operators "contains" or "starts_with"
         if (fieldType === 'category' && condition.operator !== '=') {
+          return !condition.valueText || condition.valueText.trim() === '';
+        }
+        // For cashback date fields, status is required
+        if (condition.field === 'cashback_expiry_date' || condition.field === 'cashback_creation_date') {
           return !condition.valueText || condition.valueText.trim() === '';
         }
         return false;
