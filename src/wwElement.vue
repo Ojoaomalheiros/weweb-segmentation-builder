@@ -9,7 +9,7 @@
           <span v-else>Por favor, preencha todos os campos obrigatórios</span>
         </div>
         <button @click="handleCancel" class="btn-secondary" type="button">
-          Cancelar
+          {{ isEditMode ? 'Voltar' : 'Cancelar' }}
         </button>
         <button
           @click="handleSave"
