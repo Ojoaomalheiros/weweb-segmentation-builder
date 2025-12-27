@@ -1053,6 +1053,11 @@ export default {
 
     onMounted(async () => {
       document.addEventListener('click', handleClickOutside);
+
+      // Load segment on mount if segmentId is provided
+      if (props.content?.segmentId) {
+        await loadSegmentFromUrl();
+      }
     });
 
     onUnmounted(() => {
@@ -1096,7 +1101,7 @@ export default {
         console.log('🔄 Segment ID changed:', newId);
         await loadSegmentFromUrl();
       }
-    }, { immediate: true });
+    });
 
     const { value: segmentData, setValue: setSegmentData } = wwLib.wwVariable.useComponentVariable({
       uid: props.uid,
