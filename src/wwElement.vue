@@ -429,41 +429,56 @@
 
                     <!-- Birthday Range (Período de Aniversário) -->
                     <template v-else-if="getFieldType(condition.field) === 'birthday_range'">
-                      <div class="date-picker-wrapper">
+                      <!-- For "between" operator, show date range pickers -->
+                      <template v-if="condition.operator === 'between'">
+                        <div class="date-picker-wrapper">
+                          <input
+                            :value="getBirthdayDisplayDate(condition, 'start')"
+                            @click="openBirthdayPicker(groupIndex, condIndex, 'start')"
+                            type="text"
+                            placeholder="dd/mm"
+                            readonly
+                            class="input-date"
+                            :class="{ 'has-error': hasFieldError(condition, 'valueText') }"
+                          />
+                          <input
+                            :ref="el => setBirthdayPickerRef(groupIndex, condIndex, 'start', el)"
+                            @change="handleBirthdayDateChange(groupIndex, condIndex, 'start', $event)"
+                            type="date"
+                            class="hidden-date-picker"
+                          />
+                        </div>
+                        <span class="text-label">e</span>
+                        <div class="date-picker-wrapper">
+                          <input
+                            :value="getBirthdayDisplayDate(condition, 'end')"
+                            @click="openBirthdayPicker(groupIndex, condIndex, 'end')"
+                            type="text"
+                            placeholder="dd/mm"
+                            readonly
+                            class="input-date"
+                            :class="{ 'has-error': hasFieldError(condition, 'valueText') }"
+                          />
+                          <input
+                            :ref="el => setBirthdayPickerRef(groupIndex, condIndex, 'end', el)"
+                            @change="handleBirthdayDateChange(groupIndex, condIndex, 'end', $event)"
+                            type="date"
+                            class="hidden-date-picker"
+                          />
+                        </div>
+                      </template>
+                      <!-- For "in_the_next" operator, show days input -->
+                      <template v-else-if="condition.operator === 'in_the_next'">
                         <input
-                          :value="getBirthdayDisplayDate(condition, 'start')"
-                          @click="openBirthdayPicker(groupIndex, condIndex, 'start')"
-                          type="text"
-                          placeholder="dd/mm"
-                          readonly
-                          class="input-date"
-                          :class="{ 'has-error': hasFieldError(condition, 'valueText') }"
+                          v-model.number="condition.days"
+                          type="number"
+                          min="0"
+                          class="input-small"
+                          :class="{ 'has-error': hasFieldError(condition, 'days') }"
+                          placeholder="Dias"
                         />
-                        <input
-                          :ref="el => setBirthdayPickerRef(groupIndex, condIndex, 'start', el)"
-                          @change="handleBirthdayDateChange(groupIndex, condIndex, 'start', $event)"
-                          type="date"
-                          class="hidden-date-picker"
-                        />
-                      </div>
-                      <span class="text-label">e</span>
-                      <div class="date-picker-wrapper">
-                        <input
-                          :value="getBirthdayDisplayDate(condition, 'end')"
-                          @click="openBirthdayPicker(groupIndex, condIndex, 'end')"
-                          type="text"
-                          placeholder="dd/mm"
-                          readonly
-                          class="input-date"
-                          :class="{ 'has-error': hasFieldError(condition, 'valueText') }"
-                        />
-                        <input
-                          :ref="el => setBirthdayPickerRef(groupIndex, condIndex, 'end', el)"
-                          @change="handleBirthdayDateChange(groupIndex, condIndex, 'end', $event)"
-                          type="date"
-                          class="hidden-date-picker"
-                        />
-                      </div>
+                        <span class="text-label">dias</span>
+                      </template>
                     </template>
                   </template>
 
@@ -1261,7 +1276,8 @@ export default {
           { value: 'between_dates', label: 'entre datas' },
         ],
         birthday_range: [
-          { value: '=', label: 'entre datas' },
+          { value: 'between', label: 'entre datas' },
+          { value: 'in_the_next', label: 'nos próximos' },
         ],
       };
 
@@ -1341,6 +1357,17 @@ export default {
           return `entre ${formatDate(condition.startDate)} e ${formatDate(condition.endDate)}`;
         }
         return `${condition.days || '?'} dias`;
+      } else if (fieldType === 'birthday_range') {
+        if (condition.operator === 'between' && condition.valueMin && condition.valueMax) {
+          const startStr = String(condition.valueMin).padStart(4, '0');
+          const endStr = String(condition.valueMax).padStart(4, '0');
+          const startDisplay = `${startStr.slice(2, 4)}/${startStr.slice(0, 2)}`;
+          const endDisplay = `${endStr.slice(2, 4)}/${endStr.slice(0, 2)}`;
+          return `${startDisplay} e ${endDisplay}`;
+        } else if (condition.operator === 'in_the_next') {
+          return `${condition.days || '?'} dias`;
+        }
+        return '?';
       }
 
       return '?';
@@ -1449,16 +1476,14 @@ export default {
 
     // Birthday Range helpers
     function getBirthdayDisplayDate(condition, type) {
-      if (!condition.valueText) return '';
-      // Parse "MMDD-MMDD" format
-      const parts = condition.valueText.split('-');
-      if (parts.length !== 2) return '';
+      const mmdd = type === 'start' ? condition.valueMin : condition.valueMax;
+      if (!mmdd) return '';
 
-      const mmdd = type === 'start' ? parts[0] : parts[1];
-      if (mmdd.length !== 4) return '';
+      // Convert number to string with leading zeros if needed (e.g., 1101 -> "1101")
+      const mmddStr = String(mmdd).padStart(4, '0');
 
-      const month = mmdd.slice(0, 2);
-      const day = mmdd.slice(2, 4);
+      const month = mmddStr.slice(0, 2);
+      const day = mmddStr.slice(2, 4);
       return `${day}/${month}`;
     }
 
@@ -1485,32 +1510,13 @@ export default {
       if (!selectedDate) return;
 
       const [year, month, day] = selectedDate.split('-');
-      const mmdd = `${month}${day}`; // Format: MMDD
+      const mmdd = parseInt(`${month}${day}`, 10); // Format: MMDD as number (e.g., 1101)
 
-      // Parse existing valueText or create new
-      let startMMDD = '';
-      let endMMDD = '';
-
-      if (condition.valueText && condition.valueText.includes('-')) {
-        const parts = condition.valueText.split('-');
-        startMMDD = parts[0] || '';
-        endMMDD = parts[1] || '';
-      }
-
-      // Update the appropriate part
+      // Update valueMin or valueMax based on type
       if (type === 'start') {
-        startMMDD = mmdd;
+        condition.valueMin = mmdd;
       } else {
-        endMMDD = mmdd;
-      }
-
-      // Build the final valueText in "MMDD-MMDD" format
-      if (startMMDD && endMMDD) {
-        condition.valueText = `${startMMDD}-${endMMDD}`;
-      } else if (startMMDD) {
-        condition.valueText = `${startMMDD}-`;
-      } else if (endMMDD) {
-        condition.valueText = `-${endMMDD}`;
+        condition.valueMax = mmdd;
       }
 
       updateSegmentData();
@@ -2075,6 +2081,10 @@ export default {
         return false;
       } else if (fieldName === 'valueText') {
         const fieldType = getFieldType(condition.field);
+        // For birthday_range, check valueMin and valueMax instead
+        if (fieldType === 'birthday_range') {
+          return !condition.valueMin || !condition.valueMax;
+        }
         if (fieldType === 'text') {
           return !condition.valueText || condition.valueText.trim() === '';
         }
