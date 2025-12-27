@@ -960,8 +960,6 @@ export default {
           throw error;
         }
 
-        console.log('✅ Segmento carregado:', data);
-
         if (data) {
           // Preencher os campos com os dados do segmento
           populateSegmentData(data);
@@ -975,12 +973,10 @@ export default {
           );
 
           if (hasColorCondition) {
-            console.log('🎨 Pré-carregando cores...');
             await loadAllColors();
           }
 
           if (hasSizeCondition) {
-            console.log('📏 Pré-carregando tamanhos...');
             await loadAllSizes();
           }
         }
@@ -993,8 +989,6 @@ export default {
     // Preencher o componente com dados do segmento carregado
     function populateSegmentData(segmentData) {
       try {
-        console.log('📝 Preenchendo dados do segmento:', segmentData);
-
         // Preencher nome e descrição
         segmentName.value = segmentData.nome || '';
         segmentDescription.value = segmentData.descricao || '';
@@ -1005,7 +999,6 @@ export default {
             groupNumber: groupIdx + 1,
             conditions: group.conditions.map((condition, condIdx) => {
               // Converter condição do formato do backend para o formato do frontend
-              console.log(`🔍 Condition ${groupIdx}-${condIdx}:`, condition);
               const frontendCondition = createNewCondition();
 
               // ✅ REVERSE field name conversion (backend → frontend)
@@ -1066,8 +1059,6 @@ export default {
               return frontendCondition;
             })
           }));
-
-          console.log('✅ Grupos preenchidos:', groups.value.length);
         }
 
         // Atualizar dados do segmento
@@ -1569,8 +1560,6 @@ export default {
           throw new Error('Empresa ID não encontrado. Configure a propriedade empresaId ou vincule a collection do usuário.');
         }
 
-        console.log('🔍 Buscando produtos:', query, 'Empresa:', empresaId.value);
-
         // Access Supabase client from WeWeb plugin
         const supabaseClient = wwLib.wwPlugins.supabaseAuth?.publicInstance;
 
@@ -1578,40 +1567,14 @@ export default {
           throw new Error('Supabase client not available. Ensure Supabase plugin is configured.');
         }
 
-        console.log('✅ Supabase client found');
-
         // Call Edge Function with query params in the URL
         const functionName = `produtos-search?q=${encodeURIComponent(query)}&empresa_id=${empresaId.value}&limit=20`;
-        console.log('📡 Calling function:', functionName);
 
         const response = await supabaseClient.functions.invoke(functionName);
 
-        console.log('📦 Full response:', response);
-
         if (response.error) {
-          console.error('❌ Edge Function error:', response.error);
-
-          // Try to read the error body
-          try {
-            const errorResponse = response.error.context;
-            if (errorResponse && errorResponse.body) {
-              const errorText = await errorResponse.text();
-              console.error('❌ Error response body:', errorText);
-              try {
-                const errorJson = JSON.parse(errorText);
-                console.error('❌ Error JSON:', errorJson);
-              } catch (e) {
-                // Not JSON, already logged as text
-              }
-            }
-          } catch (e) {
-            console.error('Could not read error body:', e);
-          }
-
           throw response.error;
         }
-
-        console.log('✅ Produtos encontrados:', response.data);
 
         const data = response.data;
 
@@ -1619,7 +1582,6 @@ export default {
 
       } catch (error) {
         console.error('❌ Erro na busca de produtos:', error);
-        console.error('Stack:', error.stack);
         productSearchResults.value = [];
 
       } finally {
@@ -1710,11 +1672,8 @@ export default {
 
       try {
         if (!empresaId.value) {
-          console.warn('Empresa ID não disponível para carregar categorias');
           return;
         }
-
-        console.log('📂 Carregando árvore de categorias para empresa:', empresaId.value);
 
         const supabaseClient = wwLib.wwPlugins.supabaseAuth?.publicInstance;
 
@@ -1724,7 +1683,6 @@ export default {
 
         // Chamar Edge Function categorias-tree
         const functionName = `categorias-tree?empresa_id=${empresaId.value}`;
-        console.log('📡 Calling function:', functionName);
 
         const response = await supabaseClient.functions.invoke(functionName);
 
@@ -1732,8 +1690,6 @@ export default {
           console.error('❌ Erro ao carregar categorias:', response.error);
           throw response.error;
         }
-
-        console.log('✅ Árvore de categorias carregada:', response.data);
 
         // Achatar a árvore - processar roots e orphaned
         const data = response.data || {};
@@ -1748,8 +1704,6 @@ export default {
 
         // Combinar tudo
         allCategories.value = [...flattenedRoots, ...flattenedOrphaned];
-
-        console.log('✅ Categorias achatadas:', allCategories.value.length, '(roots:', roots.length, ', orphaned:', orphaned.length, ')');
 
       } catch (error) {
         console.error('❌ Erro ao carregar categorias:', error);
@@ -1770,8 +1724,6 @@ export default {
         // Carregar categorias se ainda não foram carregadas
         await loadAllCategories();
 
-        console.log('🔍 Filtrando categorias localmente:', query);
-
         // Filtrar localmente
         const lowerQuery = query.toLowerCase();
         const filtered = allCategories.value.filter(cat =>
@@ -1781,8 +1733,6 @@ export default {
 
         // Limitar a 20 resultados
         categorySearchResults.value = filtered.slice(0, 20);
-
-        console.log('✅ Categorias filtradas:', categorySearchResults.value.length);
 
       } catch (error) {
         console.error('❌ Erro ao buscar categorias:', error);
@@ -1850,11 +1800,8 @@ export default {
 
       try {
         if (!empresaId.value) {
-          console.warn('Empresa ID não disponível para carregar cores');
           return;
         }
-
-        console.log('🎨 Carregando cores disponíveis para empresa:', empresaId.value);
 
         const supabaseClient = wwLib.wwPlugins.supabaseAuth?.publicInstance;
 
@@ -1863,7 +1810,6 @@ export default {
         }
 
         const functionName = `produtos-attributes?empresa_id=${empresaId.value}&attribute=colors`;
-        console.log('📡 Calling function:', functionName);
 
         const response = await supabaseClient.functions.invoke(functionName);
 
@@ -1872,11 +1818,7 @@ export default {
           throw response.error;
         }
 
-        console.log('✅ Cores carregadas:', response.data);
-
         allColors.value = Array.isArray(response.data) ? response.data : [];
-
-        console.log('✅ Total de cores:', allColors.value.length);
 
       } catch (error) {
         console.error('❌ Erro ao carregar cores:', error);
@@ -1891,11 +1833,8 @@ export default {
 
       try {
         if (!empresaId.value) {
-          console.warn('Empresa ID não disponível para carregar tamanhos');
           return;
         }
-
-        console.log('👕 Carregando tamanhos disponíveis para empresa:', empresaId.value);
 
         const supabaseClient = wwLib.wwPlugins.supabaseAuth?.publicInstance;
 
@@ -1904,7 +1843,6 @@ export default {
         }
 
         const functionName = `produtos-attributes?empresa_id=${empresaId.value}&attribute=sizes`;
-        console.log('📡 Calling function:', functionName);
 
         const response = await supabaseClient.functions.invoke(functionName);
 
@@ -1913,11 +1851,7 @@ export default {
           throw response.error;
         }
 
-        console.log('✅ Tamanhos carregados:', response.data);
-
         allSizes.value = Array.isArray(response.data) ? response.data : [];
-
-        console.log('✅ Total de tamanhos:', allSizes.value.length);
 
       } catch (error) {
         console.error('❌ Erro ao carregar tamanhos:', error);
@@ -1942,7 +1876,7 @@ export default {
             .flatMap(c => {
               // Handle product_criteria specially - convert to multiple conditions
               if (c.field === 'product_criteria') {
-                return buildProductCriteriaConditions(c);
+                return buildProductCriteriaConditions(c, group.groupNumber);
               }
 
               // Handle legacy fields
@@ -1963,6 +1897,7 @@ export default {
                 operator: c.operator,
                 groupNumber: group.groupNumber, // camelCase
                 group_number: group.groupNumber, // snake_case (backend compatibility)
+                version: 3, // Version for segmento_criterios
               };
 
               if (c.valueText) condition.valueText = c.valueText;
@@ -2007,6 +1942,7 @@ export default {
           valueMin: condition.metricCount.value,
           groupNumber: groupNumber,
           group_number: groupNumber, // snake_case (backend compatibility)
+          version: 3, // Version for segmento_criterios
           timeOperator: condition.timeOperator || 'over_all_time',
           ...(condition.timeOperator === 'in_the_last' && condition.days ? { days: condition.days } : {}),
           ...(condition.timeOperator === 'between_dates' && condition.startDate && condition.endDate
@@ -2022,6 +1958,7 @@ export default {
           valueMin: condition.metricValue.value,
           groupNumber: groupNumber,
           group_number: groupNumber, // snake_case (backend compatibility)
+          version: 3, // Version for segmento_criterios
           timeOperator: condition.timeOperator || 'over_all_time',
           ...(condition.timeOperator === 'in_the_last' && condition.days ? { days: condition.days } : {}),
           ...(condition.timeOperator === 'between_dates' && condition.startDate && condition.endDate
@@ -2037,6 +1974,7 @@ export default {
           valueMin: condition.metricRecency.value,
           groupNumber: groupNumber,
           group_number: groupNumber, // snake_case (backend compatibility)
+          version: 3, // Version for segmento_criterios
           // Note: product_purchase_recency does NOT support temporal filters
         });
       }
@@ -2044,7 +1982,7 @@ export default {
       return metricsConditions;
     }
 
-    function buildProductCriteriaConditions(criteria) {
+    function buildProductCriteriaConditions(criteria, groupNumber) {
       const conditions = [];
 
       // Validate product value is provided
@@ -2062,6 +2000,9 @@ export default {
       const productCondition = {
         field: productFieldName,
         operator: criteria.productOperator,
+        groupNumber: groupNumber,
+        group_number: groupNumber,
+        version: 3,
         timeOperator: criteria.timeOperator || 'over_all_time',
       };
 
@@ -2090,6 +2031,9 @@ export default {
             field: 'product_purchase_count',
             operator: criteria.metricCount.operator,
             valueMin: criteria.metricCount.value,
+            groupNumber: groupNumber,
+            group_number: groupNumber,
+            version: 3,
             timeOperator: criteria.timeOperator || 'over_all_time',
             ...(criteria.timeOperator === 'in_the_last' && criteria.days ? { days: criteria.days } : {}),
             ...(criteria.timeOperator === 'between_dates' && criteria.startDate && criteria.endDate
@@ -2103,6 +2047,9 @@ export default {
             field: 'product_purchase_value',
             operator: criteria.metricValue.operator,
             valueMin: criteria.metricValue.value,
+            groupNumber: groupNumber,
+            group_number: groupNumber,
+            version: 3,
             timeOperator: criteria.timeOperator || 'over_all_time',
             ...(criteria.timeOperator === 'in_the_last' && criteria.days ? { days: criteria.days } : {}),
             ...(criteria.timeOperator === 'between_dates' && criteria.startDate && criteria.endDate
@@ -2116,6 +2063,9 @@ export default {
             field: 'product_purchase_recency',
             operator: criteria.metricRecency.operator,
             valueMin: criteria.metricRecency.value,
+            groupNumber: groupNumber,
+            group_number: groupNumber,
+            version: 3,
             // Note: product_purchase_recency does NOT support temporal filters
           });
         }
@@ -2209,12 +2159,6 @@ export default {
       try {
         const collections = wwLib.$store.getters['data/getCollections'];
         empresa = collections?.['2a7ebac6-154a-4af7-8337-411e42e6a35c']?.data?.[0]?.empresa;
-
-        console.log('=== FETCH EMPRESA ===');
-        console.log('Collections:', collections);
-        console.log('User collection data:', collections?.['2a7ebac6-154a-4af7-8337-411e42e6a35c']?.data);
-        console.log('Empresa fetched:', empresa);
-        console.log('=====================');
       } catch (error) {
         console.error('Error fetching empresa:', error);
       }
@@ -2236,12 +2180,6 @@ export default {
         payload.id = parseInt(props.content.segmentId);
         payload.version = "2";
       }
-
-      console.log('=== PAYLOAD COMPLETO ===');
-      console.log(payload);
-      console.log('=== PAYLOAD JSON (para verificar group_number) ===');
-      console.log(JSON.stringify(payload, null, 2));
-      console.log('========================');
 
       // Set loading state
       isSaving.value = true;
