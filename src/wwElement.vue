@@ -1932,11 +1932,20 @@ export default {
               // Tratamento especial para campos de data (cashback_expiry_date, cashback_creation_date)
               const fieldType = getFieldType(c.field);
               if (fieldType === 'date') {
+                console.log('🔍 DEBUG: Campo de data detectado:', {
+                  field: c.field,
+                  operator: c.operator,
+                  startDate: c.startDate,
+                  endDate: c.endDate,
+                  days: c.days
+                });
                 if (c.operator === 'between_dates' && c.startDate && c.endDate) {
                   condition.startDate = c.startDate;
                   condition.endDate = c.endDate;
+                  console.log('✅ DEBUG: startDate e endDate adicionados à condição');
                 } else if ((c.operator === 'in_the_next' || c.operator === 'in_the_last') && c.days) {
                   condition.days = c.days;
+                  console.log('✅ DEBUG: days adicionado à condição');
                 }
               }
 
