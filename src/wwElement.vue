@@ -1472,8 +1472,10 @@ export default {
     // Date formatting helper
     function formatDateToBR(isoDate) {
       if (!isoDate) return '';
+      // Remove timestamp if present (e.g., "2025-01-01T00:00:00" -> "2025-01-01")
+      const dateOnly = isoDate.split('T')[0];
       // Convert yyyy-mm-dd to dd/mm/yy
-      const [year, month, day] = isoDate.split('-');
+      const [year, month, day] = dateOnly.split('-');
       const shortYear = year.slice(2); // Get last 2 digits of year
       return `${day}/${month}/${shortYear}`;
     }
