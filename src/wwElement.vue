@@ -2308,6 +2308,10 @@ export default {
     }
 
     function handleCancel() {
+      // Navigate to segmento page
+      wwLib.goTo('/segmento');
+
+      // Also emit cancel event for custom workflows
       emit('trigger-event', {
         name: 'cancel',
         event: {}
