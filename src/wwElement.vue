@@ -987,6 +987,7 @@ export default {
             groupNumber: groupIdx + 1,
             conditions: group.conditions.map((condition, condIdx) => {
               // Converter condição do formato do backend para o formato do frontend
+              console.log(`🔍 Condition ${groupIdx}-${condIdx}:`, condition);
               const frontendCondition = createNewCondition();
 
               frontendCondition.field = condition.field;
