@@ -1953,6 +1953,7 @@ export default {
               const condition = {
                 field: actualFieldName,
                 operator: c.operator,
+                groupNumber: group.groupNumber, // Adicionar groupNumber em cada condição
               };
 
               if (c.valueText) condition.valueText = c.valueText;
@@ -1976,7 +1977,7 @@ export default {
 
               // Add metrics if enabled for product or category
               if ((c.field === 'produto' || c.field === 'categoria') && c.enableMetrics) {
-                const metricsConditions = buildMetricsConditions(c);
+                const metricsConditions = buildMetricsConditions(c, group.groupNumber);
                 conditionsArray.push(...metricsConditions);
               }
 
@@ -1986,7 +1987,7 @@ export default {
       };
     }
 
-    function buildMetricsConditions(condition) {
+    function buildMetricsConditions(condition, groupNumber) {
       const metricsConditions = [];
 
       // Quantity (product_purchase_count)
@@ -1995,6 +1996,7 @@ export default {
           field: 'product_purchase_count',
           operator: condition.metricCount.operator,
           valueMin: condition.metricCount.value,
+          groupNumber: groupNumber,
           timeOperator: condition.timeOperator || 'over_all_time',
           ...(condition.timeOperator === 'in_the_last' && condition.days ? { days: condition.days } : {}),
           ...(condition.timeOperator === 'between_dates' && condition.startDate && condition.endDate
@@ -2008,6 +2010,7 @@ export default {
           field: 'product_purchase_value',
           operator: condition.metricValue.operator,
           valueMin: condition.metricValue.value,
+          groupNumber: groupNumber,
           timeOperator: condition.timeOperator || 'over_all_time',
           ...(condition.timeOperator === 'in_the_last' && condition.days ? { days: condition.days } : {}),
           ...(condition.timeOperator === 'between_dates' && condition.startDate && condition.endDate
@@ -2021,6 +2024,7 @@ export default {
           field: 'product_purchase_recency',
           operator: condition.metricRecency.operator,
           valueMin: condition.metricRecency.value,
+          groupNumber: groupNumber,
           // Note: product_purchase_recency does NOT support temporal filters
         });
       }
