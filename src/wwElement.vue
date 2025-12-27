@@ -1042,6 +1042,24 @@ export default {
           }));
 
           console.log('✅ Grupos preenchidos:', groups.value.length);
+
+          // Pré-carregar cores e tamanhos se existirem condições com esses campos
+          const hasColorCondition = groups.value.some(group =>
+            group.conditions.some(c => c.field === 'variation_color')
+          );
+          const hasSizeCondition = groups.value.some(group =>
+            group.conditions.some(c => c.field === 'variation_size')
+          );
+
+          if (hasColorCondition) {
+            console.log('🎨 Pré-carregando cores...');
+            await loadAllColors();
+          }
+
+          if (hasSizeCondition) {
+            console.log('📏 Pré-carregando tamanhos...');
+            await loadAllSizes();
+          }
         }
 
         // Atualizar dados do segmento
