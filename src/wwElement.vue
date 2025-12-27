@@ -2181,6 +2181,25 @@ export default {
         payload.version = "2";
       }
 
+      // 🔍 DEBUG: Log completo do payload com todas as condições
+      console.log('=== PAYLOAD SENDO ENVIADO ===');
+      console.log('Total de grupos:', payload.groups?.length);
+      payload.groups?.forEach((group, idx) => {
+        console.log(`\nGrupo ${idx + 1}:`, {
+          groupNumber: group.groupNumber,
+          total_conditions: group.conditions.length
+        });
+        group.conditions.forEach((cond, condIdx) => {
+          console.log(`  Condição ${condIdx + 1}:`, {
+            field: cond.field,
+            operator: cond.operator,
+            group_number: cond.group_number,
+            version: cond.version
+          });
+        });
+      });
+      console.log('============================\n');
+
       // Set loading state
       isSaving.value = true;
 
