@@ -2231,6 +2231,8 @@ export default {
 
       console.log('=== PAYLOAD COMPLETO ===');
       console.log(payload);
+      console.log('=== PAYLOAD JSON (para verificar group_number) ===');
+      console.log(JSON.stringify(payload, null, 2));
       console.log('========================');
 
       // Set loading state
