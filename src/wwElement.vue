@@ -1051,14 +1051,6 @@ export default {
       }
     }
 
-    // Watch for segmentId changes
-    watch(() => props.content?.segmentId, async (newId, oldId) => {
-      if (newId && newId !== oldId) {
-        console.log('🔄 Segment ID changed:', newId);
-        await loadSegmentFromUrl();
-      }
-    }, { immediate: true });
-
     onMounted(async () => {
       document.addEventListener('click', handleClickOutside);
     });
@@ -1097,6 +1089,14 @@ export default {
       // No data available
       return undefined;
     });
+
+    // Watch for segmentId changes (after empresaId is defined)
+    watch(() => props.content?.segmentId, async (newId, oldId) => {
+      if (newId && newId !== oldId) {
+        console.log('🔄 Segment ID changed:', newId);
+        await loadSegmentFromUrl();
+      }
+    }, { immediate: true });
 
     const { value: segmentData, setValue: setSegmentData } = wwLib.wwVariable.useComponentVariable({
       uid: props.uid,
