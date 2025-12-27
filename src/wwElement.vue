@@ -1008,7 +1008,15 @@ export default {
               console.log(`🔍 Condition ${groupIdx}-${condIdx}:`, condition);
               const frontendCondition = createNewCondition();
 
-              frontendCondition.field = condition.field;
+              // ✅ REVERSE field name conversion (backend → frontend)
+              let frontendFieldName = condition.field;
+              if (condition.field === 'product_id' || condition.field === 'product_name') {
+                frontendFieldName = 'produto';
+              } else if (condition.field === 'product_category_id' || condition.field === 'product_category_name') {
+                frontendFieldName = 'categoria';
+              }
+
+              frontendCondition.field = frontendFieldName;
               frontendCondition.operator = condition.operator;
 
               // Preencher valores baseado no tipo de campo
@@ -1046,12 +1054,12 @@ export default {
               const key = `${groupIdx}-${condIdx}`;
 
               // Se for produto e tiver nome, adicionar ao cache
-              if (condition.field === 'produto' && condition.productName) {
+              if (frontendFieldName === 'produto' && condition.productName) {
                 productSearchQuery.value[key] = condition.productName;
               }
 
               // Se for categoria e tiver nome, adicionar ao cache
-              if (condition.field === 'categoria' && condition.categoryName) {
+              if (frontendFieldName === 'categoria' && condition.categoryName) {
                 categorySearchQuery.value[key] = condition.categoryName;
               }
 
