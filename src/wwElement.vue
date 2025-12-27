@@ -1897,7 +1897,6 @@ export default {
                 operator: c.operator,
                 groupNumber: group.groupNumber, // camelCase
                 group_number: group.groupNumber, // snake_case (backend compatibility)
-                version: 3, // Version for segmento_criterios
               };
 
               if (c.valueText) condition.valueText = c.valueText;
@@ -1942,7 +1941,6 @@ export default {
           valueMin: condition.metricCount.value,
           groupNumber: groupNumber,
           group_number: groupNumber, // snake_case (backend compatibility)
-          version: 3, // Version for segmento_criterios
           timeOperator: condition.timeOperator || 'over_all_time',
           ...(condition.timeOperator === 'in_the_last' && condition.days ? { days: condition.days } : {}),
           ...(condition.timeOperator === 'between_dates' && condition.startDate && condition.endDate
@@ -1958,7 +1956,6 @@ export default {
           valueMin: condition.metricValue.value,
           groupNumber: groupNumber,
           group_number: groupNumber, // snake_case (backend compatibility)
-          version: 3, // Version for segmento_criterios
           timeOperator: condition.timeOperator || 'over_all_time',
           ...(condition.timeOperator === 'in_the_last' && condition.days ? { days: condition.days } : {}),
           ...(condition.timeOperator === 'between_dates' && condition.startDate && condition.endDate
@@ -1974,7 +1971,6 @@ export default {
           valueMin: condition.metricRecency.value,
           groupNumber: groupNumber,
           group_number: groupNumber, // snake_case (backend compatibility)
-          version: 3, // Version for segmento_criterios
           // Note: product_purchase_recency does NOT support temporal filters
         });
       }
@@ -2002,7 +1998,6 @@ export default {
         operator: criteria.productOperator,
         groupNumber: groupNumber,
         group_number: groupNumber,
-        version: 3,
         timeOperator: criteria.timeOperator || 'over_all_time',
       };
 
@@ -2033,7 +2028,6 @@ export default {
             valueMin: criteria.metricCount.value,
             groupNumber: groupNumber,
             group_number: groupNumber,
-            version: 3,
             timeOperator: criteria.timeOperator || 'over_all_time',
             ...(criteria.timeOperator === 'in_the_last' && criteria.days ? { days: criteria.days } : {}),
             ...(criteria.timeOperator === 'between_dates' && criteria.startDate && criteria.endDate
@@ -2049,7 +2043,6 @@ export default {
             valueMin: criteria.metricValue.value,
             groupNumber: groupNumber,
             group_number: groupNumber,
-            version: 3,
             timeOperator: criteria.timeOperator || 'over_all_time',
             ...(criteria.timeOperator === 'in_the_last' && criteria.days ? { days: criteria.days } : {}),
             ...(criteria.timeOperator === 'between_dates' && criteria.startDate && criteria.endDate
@@ -2065,7 +2058,6 @@ export default {
             valueMin: criteria.metricRecency.value,
             groupNumber: groupNumber,
             group_number: groupNumber,
-            version: 3,
             // Note: product_purchase_recency does NOT support temporal filters
           });
         }
@@ -2175,10 +2167,12 @@ export default {
         empresa: empresa, // Override empresa with fetched value
       };
 
-      // Se estiver em modo edição, adicionar id e version
+      // Sempre usar version "3" conforme especificação da API
+      payload.version = "3";
+
+      // Se estiver em modo edição, adicionar id
       if (isEditMode.value && props.content?.segmentId) {
         payload.id = parseInt(props.content.segmentId);
-        payload.version = "2";
       }
 
       // 🔍 DEBUG: Log completo do payload com todas as condições
