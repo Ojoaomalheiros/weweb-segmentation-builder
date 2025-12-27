@@ -1953,7 +1953,8 @@ export default {
               const condition = {
                 field: actualFieldName,
                 operator: c.operator,
-                groupNumber: group.groupNumber, // Adicionar groupNumber em cada condição
+                groupNumber: group.groupNumber, // camelCase
+                group_number: group.groupNumber, // snake_case (backend compatibility)
               };
 
               if (c.valueText) condition.valueText = c.valueText;
@@ -1997,6 +1998,7 @@ export default {
           operator: condition.metricCount.operator,
           valueMin: condition.metricCount.value,
           groupNumber: groupNumber,
+          group_number: groupNumber, // snake_case (backend compatibility)
           timeOperator: condition.timeOperator || 'over_all_time',
           ...(condition.timeOperator === 'in_the_last' && condition.days ? { days: condition.days } : {}),
           ...(condition.timeOperator === 'between_dates' && condition.startDate && condition.endDate
@@ -2011,6 +2013,7 @@ export default {
           operator: condition.metricValue.operator,
           valueMin: condition.metricValue.value,
           groupNumber: groupNumber,
+          group_number: groupNumber, // snake_case (backend compatibility)
           timeOperator: condition.timeOperator || 'over_all_time',
           ...(condition.timeOperator === 'in_the_last' && condition.days ? { days: condition.days } : {}),
           ...(condition.timeOperator === 'between_dates' && condition.startDate && condition.endDate
@@ -2025,6 +2028,7 @@ export default {
           operator: condition.metricRecency.operator,
           valueMin: condition.metricRecency.value,
           groupNumber: groupNumber,
+          group_number: groupNumber, // snake_case (backend compatibility)
           // Note: product_purchase_recency does NOT support temporal filters
         });
       }
