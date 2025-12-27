@@ -1913,7 +1913,7 @@ export default {
               // timeOperator é OBRIGATÓRIO para todas as condições (conforme API spec)
               condition.timeOperator = c.timeOperator || 'over_all_time';
 
-              // Adicionar days/dates apenas se campo suporta filtro temporal E operador requer
+              // Adicionar days/dates para campos com filtro temporal
               if (supportsTemporalFilter(c.field)) {
                 if (c.timeOperator === 'in_the_last' && c.days) {
                   condition.days = c.days;
@@ -1922,6 +1922,11 @@ export default {
                   condition.startDate = c.startDate;
                   condition.endDate = c.endDate;
                 }
+              }
+
+              // Tratamento especial para birthday_period com operador in_the_next
+              if (c.field === 'birthday_period' && c.operator === 'in_the_next' && c.days) {
+                condition.days = c.days;
               }
 
               conditionsArray.push(condition);
