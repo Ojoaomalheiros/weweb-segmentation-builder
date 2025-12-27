@@ -2209,41 +2209,10 @@ export default {
         return;
       }
 
-      // Build payload with fetched empresa
+      // Use segmentData que já tem o payload correto com conversão de campos
       const payload = {
-        empresa: empresa,
-        nome: segmentName.value,
-        descricao: segmentDescription.value,
-        groups: groups.value.map(group => ({
-          groupNumber: group.groupNumber,
-          conditions: group.conditions
-            .filter(c => c.field && c.operator)
-            .map(c => {
-              const condition = {
-                field: c.field,
-                operator: c.operator,
-              };
-
-              if (c.valueText) condition.valueText = c.valueText;
-              if (c.valueUuid) condition.valueUuid = c.valueUuid;
-              if (c.valueMin !== null && c.valueMin !== undefined) condition.valueMin = c.valueMin;
-              if (c.valueMax !== null && c.valueMax !== undefined) condition.valueMax = c.valueMax;
-              if (c.valueList?.length > 0) condition.valueList = c.valueList;
-
-              if (supportsTemporalFilter(c.field)) {
-                condition.timeOperator = c.timeOperator;
-                if (c.timeOperator === 'in_the_last' && c.days) {
-                  condition.days = c.days;
-                }
-                if (c.timeOperator === 'between_dates' && c.startDate && c.endDate) {
-                  condition.startDate = c.startDate;
-                  condition.endDate = c.endDate;
-                }
-              }
-
-              return condition;
-            }),
-        })),
+        ...segmentData.value,
+        empresa: empresa, // Override empresa with fetched value
       };
 
       // Se estiver em modo edição, adicionar id e version
